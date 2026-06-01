@@ -1,0 +1,55 @@
+{
+  "system": "WormGraph Inference Engine v2.0",
+  "config": {
+    "dim_semantic": 768,
+    "num_heads": 8,
+    "num_layers": 12,
+    "precision": "q4_k_m",
+    "use_kv_cache": true,
+    "kv_cache_max_seq": 4096,
+    "use_speculative_decoding": true,
+    "speculative_draft_tokens": 5,
+    "use_flash_attention": true,
+    "attention_impl": "flash_attention_2",
+    "target_device": "mobile",
+    "max_memory_mb": 2048,
+    "kernel_backend": "metal_shading_language",
+    "enable_metal_shaders": true,
+    "enable_pruning": true,
+    "pruning_sparsity": 0.3,
+    "parallelism": "tensor_parallel",
+    "world_size": 1,
+    "pipeline_stages": 1,
+    "num_experts": 8,
+    "top_k_experts": 2,
+    "target_latency_ms": 50.0,
+    "target_throughput_tps": 100.0,
+    "target_memory_mb": 1500.0,
+    "wormhole_threshold": 0.6,
+    "theosis_target": 0.95,
+    "enable_axiarchy_gate": true,
+    "enable_bindu_reflection": true
+  },
+  "benchmarks": [
+    {
+      "scenario": "mobile_edge_v1",
+      "num_runs": 1,
+      "latency_p50_ms": 0.19076850003330037,
+      "latency_p95_ms": 0.3619786498347821,
+      "latency_p99_ms": 0.37719732981713605,
+      "throughput_mean_tps": 0.0,
+      "memory_peak_mb": 0.0,
+      "memory_mean_mb": 0.0,
+      "error_rate": 0.0,
+      "target_latency_ms": 50.0,
+      "target_throughput_tps": 100.0,
+      "target_memory_mb": 1500.0,
+      "meets_latency_target": true,
+      "meets_throughput_target": false,
+      "meets_memory_target": true
+    }
+  ],
+  "recommendations": [
+    "[mobile_edge_v1] Throughput (0.0 TPS) below target (100.0 TPS). Consider: Speculative decoding, batching, or Tensor Parallelism."
+  ]
+}
