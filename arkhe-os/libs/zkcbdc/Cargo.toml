@@ -1,0 +1,9 @@
+[package]
+name = "zkcbdc"
+version = "0.1.0"
+edition = "2021"
+description = "ZKCBCC - Substrato 1010 Engine for Arkhe OS"
+
+[dependencies]
+sha2 = "0.10"
+hex = { version = "0.4", default-features = false }
