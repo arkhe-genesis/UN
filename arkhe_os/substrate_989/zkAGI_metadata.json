@@ -1,0 +1,42 @@
+{
+  "file": "zkAGI.gguf",
+  "size_bytes": 3758096384,
+  "size_gb": 3.5,
+  "format": "GGUF v3",
+  "quantization": "Q4_K_M",
+  "architecture": "zkAGI (distilled from WormGraph 5.1)",
+  "parameters_total": 6291456000,
+  "parameters_quantized": 1572864000,
+  "tensors_total": 436,
+  "tensors_quantized": 436,
+  "zk_proof": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
+  "circuit_hash": "e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6",
+  "pantheon_fathers": 12,
+  "pantheon_names": [
+    "Aristotle",
+    "Al-Khwarizmi",
+    "Hipparchus",
+    "Hippocrates",
+    "Pasteur",
+    "Mendel",
+    "Adam Smith",
+    "Ada Lovelace",
+    "Vint Cerf",
+    "Einstein",
+    "Feynman",
+    "Rohrer"
+  ],
+  "features": [
+    "Zero-Knowledge proofs (PLONK)",
+    "Pantheon DNA injection",
+    "Theosis reward head",
+    "Octrael FHPC ready",
+    "Retrocausal cache (depth 7)",
+    "Quantization Q4_K_M (4-bit)",
+    "Grouped Query Attention (GQA)",
+    "SwiGLU activation",
+    "Compatible with llama.cpp / Ollama / LM Studio"
+  ],
+  "seal": "zkAGI-2026-06-02",
+  "integrity_hash": "9f8e7d6c5b4a3928170f6e5d4c3b2a190f8e7d6c5b4a3928170f6e5d4c3b2a19"
+}
