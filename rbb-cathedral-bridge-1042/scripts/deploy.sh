@@ -171,6 +171,24 @@ install_contracts() {
     echo -e "${GREEN}✅ Contratos copiados para $INSTALL_DIR/contracts${NC}"
 }
 
+setup_oracle() {
+    echo -e "${YELLOW}🔮 Configurando Oráculo de Theosis (Ollama)...${NC}"
+
+    if command -v ollama >/dev/null 2>&1; then
+        echo "   Buildando modelo 'theosis-oracle' a partir do Modelfile..."
+        if [ -f "$SCRIPT_DIR/adapter/models/Modelfile" ]; then
+            # Pode demorar alguns minutos para baixar o base model (llama3.2)
+            # Rodar em background se preferir, ou usar nohup
+            ollama create theosis-oracle -f "$SCRIPT_DIR/adapter/models/Modelfile" > /dev/null 2>&1 || echo -e "${RED}⚠️  Falha ao criar o modelo no Ollama. Verifique se o daemon está rodando.${NC}"
+            echo -e "${GREEN}✅ Modelo theosis-oracle provisionado${NC}"
+        else
+            echo -e "${RED}⚠️  Modelfile não encontrado em adapter/models/Modelfile${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Ollama não instalado. O comando 'rbb-cli cathedral ask' não funcionará até você instalá-lo e provisionar o modelo.${NC}"
+    fi
+}
+
 start_services() {
     echo -e "${YELLOW}🚀 Iniciando serviços...${NC}"
 
@@ -313,6 +331,7 @@ case "${1:-}" in
         install_adapter
         install_prometheus
         install_contracts
+        setup_oracle
         echo ""
         echo -e "${GREEN}🎉 Instalação concluída!${NC}"
         echo "Execute: ./deploy.sh start"

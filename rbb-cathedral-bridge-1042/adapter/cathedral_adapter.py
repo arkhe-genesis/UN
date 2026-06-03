@@ -286,6 +286,21 @@ class CathedralAdapter:
             print(f"   Role: {kwargs.get('role', 'ADMIN')}")
             print(f"   ORCID Hash: {hashlib.sha3_256(self.config.orcid.encode()).hexdigest()[:16]}")
 
+    def ask_oracle(self, question: str):
+        """Consulta o oráculo zkAGI (Ollama) sobre assuntos de Theosis/RBB"""
+        try:
+            import ollama
+            print(f"\n🔮 Oráculo (zkAGI) pensando...\n")
+            # Assumimos que o modelo foi buildado com o nome theosis-oracle
+            response = ollama.chat(model='theosis-oracle', messages=[
+                {'role': 'user', 'content': question}
+            ])
+            print(f"Oracle: {response['message']['content']}\n")
+        except ImportError:
+            print("❌ Biblioteca ollama não está instalada. Instale com `pip install ollama`.")
+        except Exception as e:
+            print(f"❌ Erro ao consultar o Oráculo: {e}. Certifique-se de que o ollama está rodando e o modelo 'theosis-oracle' foi criado (ex: ollama create theosis-oracle -f models/Modelfile).")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -323,6 +338,10 @@ def main():
     perm_parser.add_argument("--account", help="Endereço Ethereum")
     perm_parser.add_argument("--role", default="ADMIN", help="Role da conta")
 
+    # ask oracle
+    ask_parser = subparsers.add_parser("ask", help="Faz uma pergunta ao Oráculo (zkAGI)")
+    ask_parser.add_argument("question", help="A pergunta a ser feita")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -349,6 +368,8 @@ def main():
             account=args.account,
             role=args.role
         )
+    elif args.command == "ask":
+        adapter.ask_oracle(args.question)
 
 
 if __name__ == "__main__":

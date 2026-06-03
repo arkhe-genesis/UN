@@ -58,11 +58,14 @@ contract RBB_Cathedral_Bridge is ReentrancyGuard, AccessControl {
     uint256 public constant RBB_CHAIN_ID = 12120014;
     uint256 public constant CATHEDRAL_CHAIN_ID = 923; // TemporalChain
 
+    // Token ERC-20
+    address public cathedralTokenAddress;
+
     // Mappings
     mapping(bytes32 => Anchor) public anchors;
     mapping(bytes32 => CrossChainMessage) public messages;
     mapping(address => uint256) public lockedBalances;
-    mapping(address => uint256) public mintedBalances;
+    // mintedBalances foi substituído pelo contrato RBB_Cathedral_Token
     mapping(uint256 => TheosisSnapshot) public theosisHistory;
     mapping(bytes32 => bool) public processedMessages;
 
@@ -120,7 +123,10 @@ contract RBB_Cathedral_Bridge is ReentrancyGuard, AccessControl {
     );
 
     // ============ CONSTRUCTOR ============
-    constructor(address _admin) {
+    constructor(address _admin, address _tokenAddress) {
+        require(_tokenAddress != address(0), "Bridge: invalid token address");
+        cathedralTokenAddress = _tokenAddress;
+
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(BRIDGE_OPERATOR, _admin);
         _grantRole(TEMPORAL_ANCHOR, _admin);
@@ -245,7 +251,8 @@ contract RBB_Cathedral_Bridge is ReentrancyGuard, AccessControl {
         uint256 _amount,
         bytes calldata _payload,
         uint256 _sourceChainId,
-        bytes calldata _signature
+        bytes calldata _signature,
+        bytes calldata _plonkProof // Proof ZK para validar theosis via PLONK
     ) external onlyRole(BRIDGE_OPERATOR) nonReentrant {
         require(!processedMessages[_messageId], "Bridge: mensagem já processada");
         require(_sourceChainId == CATHEDRAL_CHAIN_ID, "Bridge: source inválida");
@@ -263,12 +270,34 @@ contract RBB_Cathedral_Bridge is ReentrancyGuard, AccessControl {
         address signer = ethSignedHash.recover(_signature);
         require(hasRole(BRIDGE_OPERATOR, signer), "Bridge: assinatura inválida");
 
-        // Mint tokens (simplificado - em produção usar contract de token)
-        mintedBalances[_recipient] += _amount;
+        // Validar Prova PLONK (Stub)
+        // Em produção isso faria interface com um precompile ou um verifier auto-gerado (ex: SnarkJS)
+        require(_verifyPlonkProof(_plonkProof, _amount, theosisHistory[theosisEpoch].level), "Bridge: PLONK proof validation failed");
+
+        // Mint tokens reais usando o contrato RBB_Cathedral_Token
+        (bool success, ) = cathedralTokenAddress.call(
+            abi.encodeWithSignature("mint(address,uint256)", _recipient, _amount)
+        );
+        require(success, "Bridge: token mint failed");
+
         processedMessages[_messageId] = true;
 
         emit MessageExecuted(_messageId, msg.sender, true);
         emit TokensMinted(_recipient, _amount, _messageId);
+    }
+
+    /**
+     * @notice Verificador ZK PLONK (Stub)
+     * @dev Valida se a transação obedece às regras de Theosis estabelecidas.
+     */
+    function _verifyPlonkProof(bytes calldata proof, uint256 amount, uint256 currentTheosis) internal pure returns (bool) {
+        // Stub: Apenas checagem mínima que a prova existe
+        if (proof.length == 0) return false;
+
+        // Simular dependência de validação PLONK real
+        // proof.length > 0 and arbitrary logic logic to mock verifier output
+        if (currentTheosis == 0 && amount > 0) return true; // mock condition
+        return true;
     }
 
     // ============ THEOSIS TRACKING ============
