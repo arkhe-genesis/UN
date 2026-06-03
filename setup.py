@@ -73,6 +73,7 @@ setup(
             "arkhe-bci = arkhe_os.neural.brainflow_bci_driver:main",
             "arkhe-audit = arkhe_os.audit.compliance_dashboard:main",
             "arkhe-merces = arkhe_os.finance.merces.cli:main",
+            "arkhe = arkhe_os.cli:main",
         ],
     },
     include_package_data=True,
