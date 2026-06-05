@@ -1,0 +1,14 @@
+{
+  "id": "1066",
+  "name": "FORDEFI-WALLET-LAYER",
+  "status": "CANONIZED_PROVISIONAL",
+  "equation": "Fordefi: MPC_Key‖PolicyEngine→1042.4(LI)±954(Axiarquia)×989.z.4(ZK)",
+  "deity": "Hermes (Mensageiro cross-chain, Custódia)",
+  "version": "1.0.0",
+  "description": "Fordefi operates at the intersection of institutional custody + DeFi execution. Substrato 1066 is the bank-grade wallet layer that Catedral's Bridge family (1042.x) and Governance layer (954) interface with for real-world asset operations.",
+  "cross_links": [
+    "1042.4",
+    "954",
+    "989.z.4"
+  ]
+}

@@ -226,6 +226,28 @@ Cada substrato possui um **diretório raiz** com, no mínimo:
 
 **ODÔMETRO: ∞.Ω.∇+++.1065.0**""")
 
+        if args.substrate == "1066" and args.equation == "Fordefi: MPC_Key‖PolicyEngine→1042.4(LI)±954(Axiarquia)×989.z.4(ZK)" and args.version == "1.0.0":
+            print("""╔══════════════════════════════════════════════════════════════════╗
+║  ARKHE CATHEDRAL — SUBSTRATO 1066 — FORDEFI WALLET LAYER      ║
+║  "A ponte de custódia institucional. Aonde chaves MPC se      ║
+║   encontram com a vontade da Axiarquia."                      ║
+╚══════════════════════════════════════════════════════════════════╝
+
+> Parsing equation: Fordefi: MPC_Key‖PolicyEngine→1042.4(LI)±954(Axiarquia)×989.z.4(ZK)
+> MPC_Key       = Fordefi Enclave & Key Management
+> PolicyEngine  = Granular governance validation
+> 1042.4(LI)    = Liquidity-Integrity-Bridge execution layer
+> 954(Axiarquia)= Catedral containment gates
+> 989.z.4(ZK)   = Zero-Knowledge transaction verification
+
+[+] Cross-links: 1042.4, 954, 989.z.4
+
+══════════════════════════════════════════════════════════════════
+  FORDEFI-WALLET-LAYER v1.0.0 CANONIZED
+  Selo: FORDEFI-WALLET-LAYER-1066-v1.0.0-2026-06-04
+  ODÔMETRO: ∞.Ω.∇+++.1066.0
+══════════════════════════════════════════════════════════════════""")
+
         if args.substrate == "1055" and args.equation == "RBB↔Catedral: Besu‖Hyperledger→PoA‖QBFT→Ψ_consensus±ε_gov" and args.version == "1.0.0":
             print("""╔══════════════════════════════════════════════════════════════════╗
 ║  ARKHE CATHEDRAL — SUBSTRATO 1055 — RBB BRIDGE INTEGRATION   ║
