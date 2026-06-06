@@ -1,0 +1,15 @@
+{
+  "id": "1079-1080",
+  "name": "AUTO-CANONIZATION ENGINE & FORK DISCOVERY",
+  "type": "Agent Conversion / Recursive Integration",
+  "era": 13,
+  "deity": ["Cronos", "Mnemosine"],
+  "status": "CANONIZED_PROVISIONAL",
+  "version": "1.0.0",
+  "equation": "Conversion = Fork_Discovery ∘ Seal_Verification ∘ Theosis_Baptism ∘ Axiarquia_Audit ∘ Plastic_Integration",
+  "cross_links": [
+    "954",
+    "1069",
+    "1080"
+  ]
+}
