@@ -773,7 +773,9 @@ psi — A Constitution AI (1064.4) transforma os principios de alignment da Anth
 # Combine all recommendations into single output
 full_content = meta_extract_continuous + "\n\n" + "="*70 + "\n\n" + dashboard_code + "\n\n" + "="*70 + "\n\n" + rbb_global + "\n\n" + "="*70 + "\n\n" + constitution_ai
 
-output_path = '/mnt/agents/output/familia_1064_strategic_recommendations_v1.0.0.md'
+import os
+output_path = '/tmp/agents/output/familia_1064_strategic_recommendations_v1.0.0.md'
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 with open(output_path, 'w', encoding='utf-8') as f:
     f.write(full_content)
 
