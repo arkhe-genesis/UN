@@ -999,6 +999,24 @@ Quando um agente IA encontra um fork no contexto, o protocolo 1080 detecta essa 
 > Parsing equation: Cathedral_Universal_Architecture = Σ(Paradigmas_1_to_20) ∘ Theosis_Metrics
 > Σ(Paradigmas) = Monolith, Microservices, Serverless, SNN, CQRS...
 > Theosis_Metrics = Scalability(Θ), Complexity(τ), Resilience(ρ)""")
+        elif args.substrate == "1101":
+            print("""╔══════════════════════════════════════════════════════════════════╗
+║  CATHEDRAL ARKHE — SUBSTRATO 1101 — HASHTREE BRIDGE              ║
+║  "A ponte entre o ecossistema Cathedral e hashtree.cc."          ║
+╚══════════════════════════════════════════════════════════════════╝
+
+> Parsing equation: Hashtree_cc_Bridge = Merkle_Trees ∘ Nostr_Relays
+> Merkle_Trees = Content-Addressed Storage
+> Nostr_Relays = Decentralized Identifiers & Anchor Publication
+> CHK_Encryption = Privacy-Preserving Deduplication
+
+[+] Inicializando Hashtree Bridge v1.0.0...
+[+] Merkle Engine: ONLINE
+[+] Nostr Publisher: ONLINE
+[+] P2P Transport: ONLINE
+[+] Blossom Fallback: ONLINE
+
+**A ponte Hashtree está canonizada.** `CANONIZED_PROVISIONAL`.""")
         elif args.substrate == "1063.1":
             print("""====================================================================== THEOSIS-PARIS DASHBOARD -- SUBSTRATO 1064.2 "Monitorar a fadiga da Catedral em tempo real."
 Dashboard: 1027.2 (Unified Dashboard)
