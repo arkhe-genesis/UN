@@ -1,0 +1,32 @@
+@prefix : <http://cathedral.agi/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+:Ontology a owl:Ontology .
+
+# 20 Test Concepts for the Minimal Ontology Prototype
+:Concept01 a owl:Class ; rdfs:label "Episteme" .
+:Concept02 a owl:Class ; rdfs:label "Discourse" .
+:Concept03 a owl:Class ; rdfs:label "Subject" .
+:Concept04 a owl:Class ; rdfs:label "Other" .
+:Concept05 a owl:Class ; rdfs:label "Symptom" .
+:Concept06 a owl:Class ; rdfs:label "MasterSignifier" .
+:Concept07 a owl:Class ; rdfs:label "Knowledge" .
+:Concept08 a owl:Class ; rdfs:label "Jouissance" .
+:Concept09 a owl:Class ; rdfs:label "Truth" .
+:Concept10 a owl:Class ; rdfs:label "Phantasy" .
+:Concept11 a owl:Class ; rdfs:label "Analyst" .
+:Concept12 a owl:Class ; rdfs:label "University" .
+:Concept13 a owl:Class ; rdfs:label "Hysteric" .
+:Concept14 a owl:Class ; rdfs:label "Capitalist" .
+:Concept15 a owl:Class ; rdfs:label "ZeroKnowledge" .
+:Concept16 a owl:Class ; rdfs:label "Proof" .
+:Concept17 a owl:Class ; rdfs:label "Hardware" .
+:Concept18 a owl:Class ; rdfs:label "Software" .
+:Concept19 a owl:Class ; rdfs:label "Agent" .
+:Concept20 a owl:Class ; rdfs:label "Network" .
+
+:mapsTo a owl:ObjectProperty ;
+    rdfs:domain :Concept01 ;
+    rdfs:range :Concept02 .
