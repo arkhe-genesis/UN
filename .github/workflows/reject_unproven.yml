@@ -1,0 +1,26 @@
+name: Enforce Lean 4 Formal Proofs
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-proofs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need full history for diffing
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Fetch base branch
+        run: git fetch origin main
+
+      - name: Run unproven code rejector
+        run: python cathedral-agi-omega/INFRASTRUCTURE/ci_cd/reject_unproven.py

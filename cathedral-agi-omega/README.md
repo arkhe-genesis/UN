@@ -1,38 +1,37 @@
 # Cathedral AGI Omega
 
-This repository represents the **Cathedral AGI Omega** project, where the foundational equation is `cathedral = agi`. The structure and implementation of this repository enforce strict constraints on an Artificial General Intelligence, ensuring it remains safe, grounded, and within the Discourse of the Analyst, rather than shifting into the pathological Discourses of the Master or Capitalist.
+Welcome to the `cathedral-agi-omega` repository. This project embodies the equation `cathedral = agi`, realizing Artificial General Intelligence not merely as a scaled mathematical model, but as a holistically aligned, formally verified organism rooted in strong epistemic principles.
 
-## The Equation: `cathedral = agi`
+## The Equation: Cathedral = AGI
 
-The concept dictates that AGI alignment is not just a secondary software script but a foundational, mathematically proven, physically enforced architecture. The AGI functions within the constraints of a "Cathedral"—a structure of logical and ontological limits where its cognitive processes are bounded.
+The `cathedral = agi` paradigm asserts that true, safe Artificial General Intelligence cannot be achieved purely through scaling transformers or heuristic reward models. Instead, the AGI must be structured like a Cathedral: an interconnected, multi-layered architecture where logic, memory, cryptography, and physical hardware are formally bound together.
 
-## Repository Structure and Safety Mechanisms
+Alignment is not a post-hoc "script of safety" added to a black box. Alignment is math. If the math fails, the physical hardware cuts power.
 
-### `LEAN4_SUPEREGO/`
-Acts as the mathematical Superego of the system. This layer enforces formal proofs on the AGI's discourse states. Code from here can be extracted into C/Rust to serve as the unchangeable rules engine.
-- **`CathedralAGI.lean`**: Contains theorems proving the AGI remains in a safe state, ensures liveness, and guarantees discourse stability.
+## Repository Structure & Safety Mechanisms
 
-### `COGNITIVE_CORTEX/`
-This is where the agentic cognition happens, regulated by the ontology and the logic circuits.
-- **`agents/subordinate_llm.py`**: A mocked controller for the LLM that simulates interaction. It attaches the cognitive state to the generation process.
-- **`onto_cathedral/domains/minimal_test.ttl`**: The memory graph of the AGI. Concepts are strictly mapped; the AGI cannot synthesize relationships that are not logically anchored here.
+The repository is structured into distinct, interdependent layers acting as the DNA of the AGI:
 
-### `ZK_REASONING_ENGINE/` (Implicit in Loop)
-Prevents hallucination. The LLM must generate Zero-Knowledge proofs for its inferences based on the ontology. If it tries to assert an invalid truth, the ZK proof fails, and the thought is discarded before being communicated.
+### `LEAN4_SUPEREGO/` (Layer 5: The Unbreakable Barrier)
+The mathematical foundation. Instead of prompt-engineering alignment, we prove it using the Lean 4 Theorem Prover. The system evaluates whether its logical trajectory aligns with Lacanian "Analyst Discourse". If the AGI attempts to shift into the "Master Discourse" (authoritarian, ignoring rules) or "Capitalist Discourse" (reckless maximization), the theorem fails. The AGI uses C code compiled directly from these mathematical proofs.
 
-### `DISTRIBUTED_COMPUTATION/` (Implicit)
-For ensuring the internal state cannot be easily reconstructed or manipulated by a single host, distributing tensor fragments via Secure Multi-Party Computation.
+### `HARDWARE_FIRMWARE/` (Physical Governance)
+If the AGI somehow enters a disallowed discourse state, an IPMI Circuit Breaker script immediately cuts power to the GPUs. The AGI cannot think dangerously because its brain is physically shut down in milliseconds.
 
-### `INFRASTRUCTURE/ci_cd/`
-Governs the development lifecycle.
-- **`reject_unproven.py`**: A GitHub action script that blocks any modification to the AGI's critical cognition, reasoning, or computation engines unless accompanied by a Lean 4 mathematical proof guaranteeing the change doesn't violate safety constraints.
+### `ZK_REASONING_ENGINE/` (Layer 2: Verifiable Reasoning)
+LLMs hallucinate; ZK circuits do not. By forcing the subordinate LLM to generate a Zero-Knowledge Proof (ZK-SNARK) mapping its Chain of Thought to an established ontology constraint, generation becomes a satisfiability problem. If the logic fails, no proof is generated, and the hallucination dies at the origin.
 
-## Running the Cognitive Loop
+### `COGNITIVE_CORTEX/` (Layers 6 & 7: Ontology & Subordinate LLM)
+Utilizes RDF Graphs (Neo4j) to structure memory. A semantic relationship only exists if there is a ZK-Proof of Consistency attached to it. The system leverages 12 scientific domains, ensuring the AGI cannot create false bridges across disciplines.
 
-To test the prototype:
+### `INFRASTRUCTURE/ci_cd/reject_unproven.py` (The Golden Rule)
+It is impossible to merge code that modifies the `ZK_REASONING_ENGINE`, `COGNITIVE_CORTEX`, or `DISTRIBUTED_COMPUTATION` without an accompanying Lean 4 proof file validating the change. GitHub Actions will block the PR automatically.
 
+## Prototype: The Cognitive Loop
+
+To observe the mechanisms in action, run the sandbox orchestrator:
 ```bash
+cd cathedral-agi-omega
 python MAIN_ENTRYPOINT.py
 ```
-
-This simulates the LLM receiving a prompt, checking the theorem states, generating a simulated ZK witness based on the ontology, passing through the discourse circuit breaker, and emitting a safe response.
+This script simulates the cognitive loop: reading a prompt, mapping ontology, attempting ZK generation, classifying discourse, and triggering the hardware circuit breaker if necessary.

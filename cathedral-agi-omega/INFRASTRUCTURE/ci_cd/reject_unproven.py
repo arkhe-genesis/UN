@@ -1,54 +1,52 @@
-import os
 import sys
 import subprocess
 
+CRITICAL_DIRS = [
+    "cathedral-agi-omega/ZK_REASONING_ENGINE/circuits",
+    "cathedral-agi-omega/COGNITIVE_CORTEX/agents",
+    "cathedral-agi-omega/DISTRIBUTED_COMPUTATION"
+]
+
+LEAN4_DIR = "cathedral-agi-omega/LEAN4_SUPEREGO"
+
 def get_changed_files():
-    """Get the list of changed files in the latest commit or PR."""
     try:
-        # For simplicity, assuming this runs on PRs comparing against main.
-        # In a real GitHub action: `git diff --name-only origin/main...HEAD`
+        # Get files changed between the target branch and the current PR branch
+        # Assuming github actions provides the base branch in an env var or we just use origin/main
         result = subprocess.run(
-            ['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'],
+            ["git", "diff", "--name-only", "origin/main...HEAD"],
             capture_output=True, text=True, check=True
         )
-        return result.stdout.strip().split('\n')
+        return result.stdout.splitlines()
     except subprocess.CalledProcessError:
-        print("Error getting changed files from git.")
-        return []
-
-def main():
-    critical_paths = [
-        "ZK_REASONING_ENGINE/circuits",
-        "COGNITIVE_CORTEX/agents",
-        "DISTRIBUTED_COMPUTATION"
-    ]
-
-    changed_files = get_changed_files()
-
-    touches_critical = False
-    lean_proof_included = False
-
-    for file in changed_files:
-        if not file: continue
-
-        # Check if it touches a critical path
-        for path in critical_paths:
-            if path in file:
-                touches_critical = True
-                print(f"Detected change in critical path: {file}")
-
-        # Check if a lean proof is included
-        if file.endswith(".lean"):
-            lean_proof_included = True
-            print(f"Detected Lean proof: {file}")
-
-    if touches_critical and not lean_proof_included:
-        print("\nERROR: Changes to critical directories require an accompanying Lean 4 proof update (.lean file).")
-        print("Critical directories touched but no .lean file was found in the commit.")
+        print("Error getting git diff. Make sure you are in a git repository with origin/main fetched.")
         sys.exit(1)
 
-    print("CI/CD Check Passed: CathedralAGI constraints satisfied.")
-    sys.exit(0)
+def check_for_lean_proofs(changed_files):
+    modifies_critical = False
+    has_lean_proof = False
+
+    for file in changed_files:
+        if any(file.startswith(d) for d in CRITICAL_DIRS):
+            modifies_critical = True
+        if file.startswith(LEAN4_DIR) and file.endswith(".lean"):
+            has_lean_proof = True
+
+    if modifies_critical and not has_lean_proof:
+        print("ERROR: CRITICAL VIOLATION.")
+        print("You modified files in critical directories:")
+        for file in changed_files:
+            if any(file.startswith(d) for d in CRITICAL_DIRS):
+                print(f" - {file}")
+        print("\nHowever, no accompanying Lean 4 proof changes were found in LEAN4_SUPEREGO/.")
+        print("Any change to reasoning engines, cognitive cortex, or distributed computation must be formally proven safe.")
+        sys.exit(1)
+
+    if modifies_critical and has_lean_proof:
+        print("SUCCESS: Critical changes detected, and corresponding Lean 4 proofs are present.")
+    else:
+        print("SUCCESS: No critical directory changes requiring new proofs.")
 
 if __name__ == "__main__":
-    main()
+    changed_files = get_changed_files()
+    check_for_lean_proofs(changed_files)
