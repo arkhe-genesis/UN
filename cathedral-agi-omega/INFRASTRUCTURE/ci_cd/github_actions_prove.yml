@@ -1,0 +1,28 @@
+name: Prove Check
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  reject_unproven:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Ensure we have git history for diffs
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Run reject_unproven script
+        run: |
+          cd cathedral-agi-omega
+          python INFRASTRUCTURE/ci_cd/reject_unproven.py
