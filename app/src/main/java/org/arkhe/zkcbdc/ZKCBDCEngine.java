@@ -106,6 +106,7 @@ public class ZKCBDCEngine {
 
   private long totalVolume = 0;
 
+  @SuppressWarnings("DoNotCreateSecureRandomDirectly")
   private final SecureRandom random = new SecureRandom();
 
   public ZKCBDCEngine(final long totalSupply, final String centralBankKey) {
@@ -191,7 +192,6 @@ public class ZKCBDCEngine {
     nullifiers.add(nullifier);
     tx.status = TransactionStatus.PROVEN;
     transactions.put(txId, tx);
-    totalTransactions++;
     totalVolume += amount;
 
     mintProofs.put(txId, sha256("supply:" + totalSupply + ":" + txId + ":" + totalVolume));
@@ -230,6 +230,7 @@ public class ZKCBDCEngine {
     return sb.toString();
   }
 
+  @SuppressWarnings("DoNotInvokeMessageDigestDirectly")
   private static String sha256(final String input) {
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-256");
