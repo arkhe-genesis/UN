@@ -37,3 +37,4 @@ jitpack.yml
 **/**/.factorypath
 **/**/.jqwik-database
 __pycache__/
+venv/
