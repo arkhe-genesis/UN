@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  enter-cathedral-ingestor:
+    build: ./ingestor
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - BUFFER_SIZE=1000
+      - FLUSH_INTERVAL_MS=5000
+    depends_on:
+      - kafka
+      - enter-cathedral-oracle
+    restart: unless-stopped
+
+  enter-cathedral-oracle:
+    build: ./oracle
+    environment:
+      - RBB_RPC=https://testnet.rbbchain.com/rpc
+      - ORACLE_ADDR=0x...
+      - SPHINCS_LIB=/usr/lib/libsphincs.so
+      - TEE_MODE=true
+    volumes:
+      - ./libsphincs.so:/usr/lib/libsphincs.so:ro
+      - ./sphincs_keys:/keys:ro
+    privileged: true
+    restart: unless-stopped
+
+  enter-cathedral-api:
+    build: ./api
+    ports:
+      - "8080:8080"
+    environment:
+      - RBB_RPC=https://testnet.rbbchain.com/rpc
+      - ORACLE_ADDR=0x...
+    restart: unless-stopped
+
+  enter-cathedral-explorer:
+    build: ./explorer
+    ports:
+      - "3000:3000"
+    environment:
+      - API_URL=http://enter-cathedral-api:8080
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
