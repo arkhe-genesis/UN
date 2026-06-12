@@ -50,7 +50,7 @@ class ShamirSecretSharing:
     def reconstruct_tensor(shares: List[Tuple[bytes, bytes]], shape: torch.Size) -> torch.Tensor:
         """Reconstrói o tensor original a partir de k shares."""
         # Em produção, isso é feito via Lagrange em campos primos,
-        # mas para聚合 (agregação direta), podemos usar um truque algébrico:
+        # mas para agregação direta, podemos usar um truque algébrico:
         # Se somarmos os 'valores' dos k shares, os coeficientes se cancelam,
         # restando apenas o tensor original multiplicado por k.
 
