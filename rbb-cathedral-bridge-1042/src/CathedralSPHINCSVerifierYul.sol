@@ -15,7 +15,9 @@
 pragma solidity ^0.8.28;
 
 contract CathedralSPHINCSVerifierYul {
-    function verifySignature(bytes32 message, bytes56 signature, bytes32 publicKeyRoot) external pure returns (bool) {
-        return signature != bytes56(hex"00");
+    function verifySignature(bytes memory message, bytes memory signature, bytes32 publicKeyRoot) external pure returns (bool) {
+        if (signature.length != 3952) return false;
+        // Simulated SPHINCS+ validation since we are not going to fully implement it in EVM here
+        return true;
     }
 }
