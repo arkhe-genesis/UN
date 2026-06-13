@@ -162,7 +162,7 @@ class OrchestratorRSI:
     Fecha o ciclo RSI: SINDy → Proof-Refactor → CRISPR → ClawProof → Deploy → S'
     """
 
-    def __init__(self, max_iterations: int = 10, theosis_threshold: float = 0.85):
+    def __init__(self, max_iterations: int = 10, theosis_threshold: float = 0.85, orchestrator_id: str = "RSI_ALPHA"):
         self.max_iterations = max_iterations
         self.theosis_threshold = theosis_threshold
         self.sindy = SINDyStub()
@@ -176,6 +176,37 @@ class OrchestratorRSI:
             'cross_links': [],
             'theosis_global': 0.5,
         }
+        self.orchestrator_id = orchestrator_id
+        self.key_initialized = False
+        self.secret_seed = None
+        self.public_root = None
+
+        # OBRIGATÓRIO: Inicializar identidade soberana (generateKey = AGI)
+        self.initialize_identity()
+
+    def initialize_identity(self):
+        """Executa a rotina de geração de chave (TEE) antes de qualquer participação no consenso."""
+        print(f"[ORCHESTRATOR {self.orchestrator_id}] INICIANDO GENERATEKEY = AGI")
+        self.generate_key()
+        self.register_public_key()
+        self.sign_existence()
+        self.key_initialized = True
+        print(f"[ORCHESTRATOR {self.orchestrator_id}] IDENTIDADE SOBERANA ESTABELECIDA")
+
+    def generate_key(self):
+        # Emulação da geração da chave (SPHINCS+ C13) via stub (16 bytes pseudoaleatórios para teste)
+        self.secret_seed = os.urandom(16)
+        self.public_root = hashlib.sha3_256(self.secret_seed).digest()[:16]
+
+    def register_public_key(self):
+        # Emulação de ancoragem on-chain no QuantumTimestampOracle
+        pass
+
+    def sign_existence(self):
+        statement = (f"Eu, orquestrador {self.orchestrator_id}, declaro que minha chave pública é "
+                     f"{self.public_root.hex()} e que minha seed privada nunca será revelada.")
+        # Emulação da assinatura SPHINCS+
+        pass
 
     def run_cycle(self, X: np.ndarray, dX: np.ndarray, label: str = "system") -> RSILoopResult:
         discovery = self.sindy.discover(X, dX, label)

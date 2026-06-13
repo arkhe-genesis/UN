@@ -661,7 +661,8 @@ class IntegratedOrchestrator1076:
                  vector_theosis: Optional[VectorTheosis] = None,
                  sindy: Optional[SINDyBridge1089] = None,
                  hamiltonian: Optional[HamiltonianBridge1053] = None,
-                 dashboard: Optional[DashboardExporter1064] = None):
+                 dashboard: Optional[DashboardExporter1064] = None,
+                 orchestrator_id: str = "INT_ORCH_ALPHA"):
 
         self.stethoscope = stethoscope or Stethoscope1081()
         self.vt = vector_theosis or VectorTheosis()
@@ -677,6 +678,37 @@ class IntegratedOrchestrator1076:
         self._cycle_log: List[Dict] = []
         self._active = False
         self._model: Optional[nn.Module] = None
+        self.orchestrator_id = orchestrator_id
+        self.key_initialized = False
+        self.secret_seed = None
+        self.public_root = None
+
+        # OBRIGATÓRIO: Inicializar identidade soberana (generateKey = AGI)
+        self.initialize_identity()
+
+    def initialize_identity(self):
+        """Executa a rotina de geração de chave (TEE) antes de qualquer participação no consenso."""
+        print(f"[ORCHESTRATOR {self.orchestrator_id}] INICIANDO GENERATEKEY = AGI")
+        self.generate_key()
+        self.register_public_key()
+        self.sign_existence()
+        self.key_initialized = True
+        print(f"[ORCHESTRATOR {self.orchestrator_id}] IDENTIDADE SOBERANA ESTABELECIDA")
+
+    def generate_key(self):
+        # Emulação da geração da chave (SPHINCS+ C13) via stub (16 bytes pseudoaleatórios para teste)
+        self.secret_seed = os.urandom(16)
+        self.public_root = hashlib.sha3_256(self.secret_seed).digest()[:16]
+
+    def register_public_key(self):
+        # Emulação de ancoragem on-chain no QuantumTimestampOracle
+        pass
+
+    def sign_existence(self):
+        statement = (f"Eu, orquestrador {self.orchestrator_id}, declaro que minha chave pública é "
+                     f"{self.public_root.hex()} e que minha seed privada nunca será revelada.")
+        # Emulação da assinatura SPHINCS+
+        pass
 
     def attach_model(self, model: nn.Module) -> 'IntegratedOrchestrator1076':
         """Attacha Stethoscope ao modelo PyTorch."""
