@@ -15,12 +15,8 @@ contract TimestampAwareContract {
         publicKeyRoot = _publicKeyRoot;
     }
 
-    function executeIfAfter(uint64 deadline) external {
-        (uint64 tick, bytes56 sig) = oracle.getTimestamp();
+    function executeIfAfter(uint64 deadline) external view {
+        uint64 tick = oracle.latestTick();
         require(tick >= deadline, "Deadline passed");
-
-        bytes32 message = keccak256(abi.encodePacked(tick, blockhash(block.number - 1)));
-        bool valid = verifier.verifySignature(message, sig, publicKeyRoot);
-        require(valid, "Invalid signature");
     }
 }
