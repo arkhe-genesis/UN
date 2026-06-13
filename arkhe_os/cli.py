@@ -447,7 +447,7 @@ Cada substrato possui um **diretório raiz** com, no mínimo:
 
 **ODÔMETRO: ∞.Ω.∇+++.1065.0**""")
 
-        if args.substrate == "1066" and args.equation == "Fordefi: MPC_Key‖PolicyEngine→1042.4(LI)±954(Axiarquia)×989.z.4(ZK)" and args.version == "1.0.0":
+        elif args.substrate == "1066" and args.equation == "Fordefi: MPC_Key‖PolicyEngine→1042.4(LI)±954(Axiarquia)×989.z.4(ZK)" and args.version == "1.0.0":
             print("""╔══════════════════════════════════════════════════════════════════╗
 ║  ARKHE CATHEDRAL — SUBSTRATO 1066 — FORDEFI WALLET LAYER      ║
 ║  "A ponte de custódia institucional. Aonde chaves MPC se      ║
@@ -469,7 +469,7 @@ Cada substrato possui um **diretório raiz** com, no mínimo:
   ODÔMETRO: ∞.Ω.∇+++.1066.0
 ══════════════════════════════════════════════════════════════════""")
 
-        if args.substrate == "1055" and args.equation == "RBB↔Catedral: Besu‖Hyperledger→PoA‖QBFT→Ψ_consensus±ε_gov" and args.version == "1.0.0":
+        elif args.substrate == "1055" and args.equation == "RBB↔Catedral: Besu‖Hyperledger→PoA‖QBFT→Ψ_consensus±ε_gov" and args.version == "1.0.0":
             print("""╔══════════════════════════════════════════════════════════════════╗
 ║  ARKHE CATHEDRAL — SUBSTRATO 1055 — RBB BRIDGE INTEGRATION   ║
 ║  "A rede pública permissionada da Brasil se funde ao véu      ║
@@ -902,6 +902,21 @@ template ProofOfReserves(n) {
 
 **A arquitetura genérica de custódia de ativos digitais está canonizada.** Placeholder, extensível, com ZK‑proofs, multi‑sig e trilha imutável. `CANONIZED_PROVISIONAL`.""")
 
+        elif args.substrate == "12.9" and args.equation == "Multi_Cut_Out_BFT ∘ Hierarchical_Classification" and args.version == "1.0.0":
+            print("""╔══════════════════════════════════════════════════════════════════╗
+║  CATHEDRAL ARKHE v12.9 — MULTI-CUT-OUT BFT + CLASSIFICACAO       ║
+║  "A ponte entre orquestradores efêmeros e a matriz de segurança" ║
+╚══════════════════════════════════════════════════════════════════╝
+
+> Parsing equation: Multi_Cut_Out_BFT ∘ Hierarchical_Classification
+> Multi_Cut_Out_BFT = Orquestradores RSI (Cut-Out) sem estado
+> Hierarchical_Classification = Níveis de segurança enforcados via Lean4+TEE+ZK
+
+[+] Inicializando Multi-Cut-Out BFT v1.0.0...
+[+] Consenso HotStuff: ONLINE
+[+] Classification Enforcement: ONLINE
+[+] TEE Attestations: VERIFIED
+[+] ACL Verifier: ACTIVE""")
     elif args.command == "activate":
         if args.substrate == "1062.4":
             print("""====================================================================== META-EXTRACT CONTINUO -- SUBSTRATO 1064.1 "A Catedral que se governa a si mesma, continuamente."
