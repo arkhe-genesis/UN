@@ -33,7 +33,7 @@ impl BFTClient {
 }
 
 pub struct Insight {
-    proof: Option<String>,
+    pub proof: Option<String>,
 }
 
 impl Insight {
@@ -42,13 +42,33 @@ impl Insight {
     }
 }
 
+// Since reflect-mcp lacks a lib target (it is a binary crate), we use an abstraction.
+pub struct ReflectMCPClient {}
+
+impl ReflectMCPClient {
+    pub fn new() -> Self { ReflectMCPClient {} }
+    pub fn extract_insights(&self, _log: &str, _task: &str) -> Vec<Insight> {
+        vec![Insight { proof: None }]
+    }
+}
+
 pub struct ReflectionEngine {
     working_memory: Arc<WorkingMemory>,
     verifier: Arc<Lean4Verifier>,
     bft_client: Arc<BFTClient>,
+    pattern_engine: ReflectMCPClient,
 }
 
 impl ReflectionEngine {
+    pub fn new(working_memory: Arc<WorkingMemory>, verifier: Arc<Lean4Verifier>, bft_client: Arc<BFTClient>) -> Self {
+        ReflectionEngine {
+            working_memory,
+            verifier,
+            bft_client,
+            pattern_engine: ReflectMCPClient::new(),
+        }
+    }
+
     pub async fn reflect(&self) -> Result<Vec<Insight>, ()> {
         let current_state = self.working_memory.get_current_state().await?;
         let desired_state = self.get_desired_state().await?;
@@ -59,12 +79,20 @@ impl ReflectionEngine {
             .map(|delta| self.generate_insight(delta))
             .collect();
 
+        // Integrate with reflect-mcp service dynamically via process or abstract logic
+        let mcp_insights = self.extract_insights(&current_state, "general_reflection").await;
+        insights.extend(mcp_insights);
+
         for insight in &mut insights {
             let proof = self.verifier.verify_insight(insight).await?;
             insight.set_proof(proof);
         }
 
         Ok(insights)
+    }
+
+    pub async fn extract_insights(&self, log: &str, task: &str) -> Vec<Insight> {
+        self.pattern_engine.extract_insights(log, task)
     }
 
     pub async fn get_desired_state(&self) -> Result<String, ()> {

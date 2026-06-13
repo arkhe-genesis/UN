@@ -1,0 +1,14 @@
+[package]
+name = "arkhe-cognitive-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+arkhe-cognitive-meta = { version = "0.1.0", path = "../meta" }
+arkhe-cognitive-reflect = { version = "0.1.0", path = "../reflect" }
+arya-stark = { version = "0.1.0", path = "../arya-stark" }
+gradient = { version = "0.1.0", path = "../gradient" }
+optimizer = "1.0.1"
+pyo3 = "0.29.0"
+reflect-mcp = "0.1.0"
+sealy = "0.2.0"
