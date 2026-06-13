@@ -38,3 +38,4 @@ jitpack.yml
 **/**/.jqwik-database
 __pycache__/
 venv/
+node_modules/
