@@ -17,3 +17,7 @@ version = "0.1.0"
 [[package]]
 name = "arkhe-cognitive-reflect"
 version = "0.1.0"
+
+[[package]]
+name = "firewall"
+version = "1.0.0"
