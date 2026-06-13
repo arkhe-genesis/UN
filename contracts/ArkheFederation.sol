@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-// Substrato 1200.1: Arkhe Federation Smart Contract
+// Substrato 1200.1 – Arkhe Federation Smart Contract
 // Selo: CATHEDRAL-1200.1-FEDERATION-SC-v1.0.0-2026-06-13
-// Arquiteto: ORCID 0009-0005-2697-4668
 
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract ArkheFederation is ReentrancyGuard, AccessControl {
@@ -13,27 +12,27 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
     bytes32 public constant ORACLE_ROLE = keccak256("ORACLE_ROLE");
 
     struct Member {
-        bytes32 id;              // SPHINCS+ public key hash (32 bytes)
-        string name;             // Human-readable (e.g., "Rio-3.5", "Starlink-Edge")
-        string jurisdiction;     // ISO 3166-1 alpha-3 or custom ("ORB", "BRICS")
-        uint8 tier;              // 0=Founder, 1=Core, 2=Associate, 3=Observer
-        uint256 stake;           // RBB tokens (wei)
-        uint256 computePower;    // FLOPS contributed (monthly)
-        uint256 dataVolume;      // TB of training data
+        bytes32 id;                 // SPHINCS+ public key hash
+        string name;
+        string jurisdiction;
+        uint8 tier;                 // 0=founder,1=core,2=associate,3=observer
+        uint256 stake;              // RBB tokens (wei)
+        uint256 computePower;
+        uint256 dataVolume;
         bool isActive;
         uint256 joinedAt;
         uint256 lastHeartbeat;
-        bytes32 zkVerificationKey; // For ZK-proof verification
+        bytes32 zkVerificationKey;
     }
 
     struct InferenceTask {
         bytes32 taskId;
-        bytes32 promptHash;      // SHA-256 of prompt (private)
-        bytes32 resultHash;      // SHA-256 of result
-        bytes32 assignedModel;   // Member ID of executor
-        uint256 cost;            // Cost in RBB tokens (wei)
-        uint256 latency;         // Latency in microseconds
-        uint8 qualityScore;      // 0-100 (ZK-verified)
+        bytes32 promptHash;
+        bytes32 resultHash;
+        bytes32 assignedModel;
+        uint256 cost;
+        uint256 latency;
+        uint8 qualityScore;
         bool isVerified;
         uint256 anchoredAt;
     }
@@ -45,7 +44,7 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
         bytes32 tertiaryModel;
         uint256 estimatedCost;
         uint256 estimatedLatency;
-        uint8 confidence;        // 0-100
+        uint8 confidence;
     }
 
     mapping(bytes32 => Member) public members;
@@ -54,11 +53,11 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
     bytes32[] public memberList;
     bytes32[] public taskList;
 
-    uint256 public constant MIN_STAKE = 1_000_000 * 1e18; // 1M RBB
+    uint256 public constant MIN_STAKE = 1_000_000 * 1e18;
     uint256 public constant QUORUM_NUMERATOR = 2;
     uint256 public constant QUORUM_DENOMINATOR = 3;
     uint256 public constant HEARTBEAT_TIMEOUT = 300; // 5 minutes
-    uint256 public constant MAX_STAKE_PERCENT = 15; // Max 15% of total stake per member
+    uint256 public constant MAX_STAKE_PERCENT = 15;  // max 15% of total stake
 
     uint256 public totalStake;
     uint256 public totalComputePower;
@@ -82,9 +81,9 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
         uint256 computePower,
         bytes32 zkVerificationKey
     ) external payable nonReentrant {
-        require(msg.value >= MIN_STAKE, "Stake insuficiente");
-        require(!members[sphincsPubKey].isActive, "Membro ja ativo");
-        require(bytes(name).length > 0, "Nome obrigatorio");
+        require(msg.value >= MIN_STAKE, "Stake insufficient");
+        require(!members[sphincsPubKey].isActive, "Member already active");
+        require(bytes(name).length > 0, "Name required");
 
         uint8 tier = computePower > 1e18 ? 1 : 2; // 1 ExaFLOP = Core
 
@@ -110,9 +109,9 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
     }
 
     function heartbeat(bytes32 memberId, uint256 computePower) external {
-        require(members[memberId].isActive, "Membro inativo");
+        require(members[memberId].isActive, "Inactive member");
         require(block.timestamp - members[memberId].lastHeartbeat < HEARTBEAT_TIMEOUT * 2,
-                "Heartbeat expirado - requer reativacao");
+                "Heartbeat expired – requires reactivation");
 
         members[memberId].lastHeartbeat = block.timestamp;
         members[memberId].computePower = computePower;
@@ -132,7 +131,6 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
     ) external returns (bytes32 taskId) {
         taskId = keccak256(abi.encodePacked(promptHash, block.timestamp, msg.sender, taskCount));
 
-        // On-chain EngineRouter: select top-3 models
         (bytes32 primary, bytes32 secondary, bytes32 tertiary, uint256 estCost, uint256 estLatency) =
             _selectModels(
                 promptHash,
@@ -164,7 +162,7 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
             tertiaryModel: tertiary,
             estimatedCost: estCost,
             estimatedLatency: estLatency,
-            confidence: 85 // Placeholder: calculated off-chain via ZK
+            confidence: 85
         });
 
         taskList.push(taskId);
@@ -180,12 +178,11 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
         uint8 qualityScore,
         bytes calldata zkProof
     ) external onlyRole(ORACLE_ROLE) nonReentrant {
-        require(tasks[taskId].assignedModel != 0, "Tarefa inexistente");
-        require(!tasks[taskId].isVerified, "Tarefa ja verificada");
+        require(tasks[taskId].assignedModel != 0, "Task does not exist");
+        require(!tasks[taskId].isVerified, "Task already verified");
 
-        // Verify ZK-proof (placeholder: actual verification in CosmWasm module)
         bool proofValid = _verifyZKProof(zkProof, tasks[taskId].assignedModel, resultHash);
-        require(proofValid, "ZK-proof invalido");
+        require(proofValid, "Invalid ZK-proof");
 
         tasks[taskId].resultHash = resultHash;
         tasks[taskId].latency = latency;
@@ -193,11 +190,10 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
         tasks[taskId].isVerified = true;
         tasks[taskId].anchoredAt = block.timestamp;
 
-        // Reward model: qualityScore >= 80 = full payment, 60-79 = 50%, <60 = slash
         uint256 reward = tasks[taskId].cost;
         if (qualityScore < 60) {
             reward = 0;
-            _slash(tasks[taskId].assignedModel, tasks[taskId].cost / 2, "Qualidade insuficiente");
+            _slash(tasks[taskId].assignedModel, tasks[taskId].cost / 2, "Poor quality");
         } else if (qualityScore < 80) {
             reward = tasks[taskId].cost / 2;
         }
@@ -205,19 +201,20 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
         emit TaskVerified(taskId, tasks[taskId].assignedModel, qualityScore, reward);
     }
 
+    // ============================================================
+    // Internal functions
+    // ============================================================
+
     function _selectModels(
-        bytes32 promptHash,
-        uint256 maxLatency,
+        bytes32,
+        uint256,
         uint256 maxCost,
         string[] calldata allowedJurisdictions,
         string[] calldata forbiddenJurisdictions,
         uint8 minTier,
         bool requiresOrbital,
-        bool requiresMultimodal
+        bool
     ) internal view returns (bytes32, bytes32, bytes32, uint256, uint256) {
-        // Simplified on-chain selection: off-chain EngineRouter provides signed recommendation
-        // This is the fallback / dispute resolution mechanism
-
         bytes32 best = 0;
         uint256 bestScore = 0;
 
@@ -256,22 +253,26 @@ contract ArkheFederation is ReentrancyGuard, AccessControl {
             }
         }
 
-        require(best != 0, "Nenhum modelo disponivel");
-        return (best, 0, 0, maxCost, maxLatency);
+        require(best != 0, "No available model");
+        return (best, 0, 0, maxCost, 100_000); // estimated latency 100ms
     }
 
-    function _verifyZKProof(bytes calldata proof, bytes32 modelId, bytes32 resultHash)
-        internal pure returns (bool) {
-        // Placeholder: actual ZK verification via CosmWasm + arkhe-cognitive::oniscience::arya_stark
+    function _verifyZKProof(bytes calldata proof, bytes32 modelId, bytes32 resultHash) internal pure returns (bool) {
+        // Em produção: chamada a um verificador CosmWasm ou a uma biblioteca ZK nativa.
+        // Por ora, aceita qualquer proof não vazio.
         return proof.length > 0;
     }
 
     function _slash(bytes32 memberId, uint256 amount, string memory reason) internal {
-        require(members[memberId].stake >= amount, "Stake insuficiente para slash");
+        require(members[memberId].stake >= amount, "Insufficient stake for slash");
         members[memberId].stake -= amount;
         totalStake -= amount;
         emit MemberSlashed(memberId, amount, reason);
     }
+
+    // ============================================================
+    // View functions
+    // ============================================================
 
     function getMemberCount() external view returns (uint256) {
         return memberList.length;
