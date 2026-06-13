@@ -2,3 +2,6 @@
 	path = ethereum/referencetests/src/reference-test/external-resources
 	url = https://github.com/ethereum/tests.git
 	ignore = all
+[submodule "contracts/lib/forge-std"]
+	path = contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
