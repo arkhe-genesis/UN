@@ -39,3 +39,4 @@ jitpack.yml
 __pycache__/
 venv/
 node_modules/
+test_env/
