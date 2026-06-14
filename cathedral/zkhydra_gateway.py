@@ -90,7 +90,7 @@ class ZkHydraGateway:
 
         except Exception as e:
             logger.error(f"Erro ao executar zkHydra: {e}")
-            return {}
+            raise e
 
     async def evaluate_vulnerability(self, bug_config_path: str, tools: List[str] = None) -> Dict:
         """
@@ -130,7 +130,7 @@ class ZkHydraGateway:
                 return {}
         except Exception as e:
             logger.error(f"Erro no evaluate: {e}")
-            return {}
+            raise e
 
 async def main():
     import argparse
