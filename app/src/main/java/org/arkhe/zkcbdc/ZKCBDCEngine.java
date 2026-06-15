@@ -29,25 +29,89 @@ import java.util.Set;
  */
 public class ZKCBDCEngine {
 
+  /** Javadoc */
+
+  /** Substrate id */
   public static final String SUBSTRATE_ID = "1010";
+
+  /** Javadoc */
+
+  /** Seal */
   public static final String SEAL = "ZKCBDC-1010-2026-05-31";
 
+  /** Javadoc */
+
+  /** TransactionStatus */
   public enum TransactionStatus {
+    /** Javadoc */
+    /** PENDING */
     PENDING,
+    /** Javadoc */
+    /** PROVEN */
     PROVEN,
+    /** Javadoc */
+    /** REJECTED */
     REJECTED,
+    /** Javadoc */
+    /** ANCHORED */
     ANCHORED,
+    /** Javadoc */
+    /** DOUBLE_SPEND */
     DOUBLE_SPEND
   }
 
+  /** Javadoc */
+
+  /** AccountState */
   public static class AccountState {
+    /** Javadoc */
+
+    /** accountId */
     public String accountId;
+
+    /** Javadoc */
+
+    /** commitmentBalance */
     public String commitmentBalance;
+
+    /** Javadoc */
+
+    /** nonce */
     public int nonce = 0;
+
+    /** Javadoc */
+
+    /** isFrozen */
     public boolean isFrozen = false;
+
+    /** Javadoc */
+
+    /** kycLevel */
     public int kycLevel = 0;
+
+    /** Javadoc */
+
+    /** lastUpdated */
     public String lastUpdated;
 
+    /** Javadoc */
+
+    /**
+     * @param accountId
+     * @param commitmentBalance
+     */
+    /**
+     * Constructor for AccountState.
+     *
+     * @param accountId the account id
+     * @param commitmentBalance the commitment balance
+     */
+    /**
+     * Constructor for AccountState.
+     *
+     * @param accountId the account id
+     * @param commitmentBalance the commitment balance
+     */
     public AccountState(final String accountId, final String commitmentBalance) {
       this.accountId = accountId;
       this.commitmentBalance = commitmentBalance;
@@ -55,20 +119,106 @@ public class ZKCBDCEngine {
     }
   }
 
+  /** Javadoc */
+
+  /** ConfidentialTransaction */
   public static class ConfidentialTransaction {
+    /** Javadoc */
+
+    /** txId */
     public String txId;
+
+    /** Javadoc */
+
+    /** commitmentSender */
     public String commitmentSender;
+
+    /** Javadoc */
+
+    /** commitmentReceiver */
     public String commitmentReceiver;
+
+    /** Javadoc */
+
+    /** commitmentAmount */
     public String commitmentAmount;
+
+    /** Javadoc */
+
+    /** nullifier */
     public String nullifier;
+
+    /** Javadoc */
+
+    /** zkProof */
     public String zkProof;
+
+    /** Javadoc */
+
+    /** kycProof */
     public String kycProof;
+
+    /** Javadoc */
+
+    /** sanctionsProof */
     public String sanctionsProof;
+
+    /** Javadoc */
+
+    /** timestamp */
     public String timestamp;
+
+    /** Javadoc */
+
+    /** status */
     public TransactionStatus status = TransactionStatus.PENDING;
+
+    /** Javadoc */
+
+    /** temporalAnchor */
     public String temporalAnchor = null;
+
+    /** Javadoc */
+
+    /** seal */
     public String seal = "";
 
+    /** Javadoc */
+
+    /**
+     * @param txId
+     * @param commitmentSender
+     * @param commitmentReceiver
+     * @param commitmentAmount
+     * @param nullifier
+     * @param zkProof
+     * @param kycProof
+     * @param sanctionsProof
+     */
+    /**
+     * Constructor for ConfidentialTransaction.
+     *
+     * @param txId the tx id
+     * @param commitmentSender the sender commitment
+     * @param commitmentReceiver the receiver commitment
+     * @param commitmentAmount the amount commitment
+     * @param nullifier the nullifier
+     * @param zkProof the ZK proof
+     * @param kycProof the KYC proof
+     * @param sanctionsProof the sanctions proof
+     */
+    /**
+     * Constructor for ConfidentialTransaction.
+     *
+     * @param txId the tx id
+     * @param commitmentSender the sender commitment
+     * @param commitmentReceiver the receiver commitment
+     * @param commitmentAmount the amount commitment
+     * @param nullifier the nullifier
+     * @param zkProof the ZK proof
+     * @param kycProof the KYC proof
+     * @param sanctionsProof the sanctions proof
+     */
     public ConfidentialTransaction(
         final String txId,
         final String commitmentSender,
@@ -89,6 +239,21 @@ public class ZKCBDCEngine {
       this.timestamp = Instant.now().toString();
     }
 
+    /** Javadoc */
+
+    /**
+     * @return
+     */
+    /**
+     * Computes the seal for the transaction.
+     *
+     * @return the computed seal
+     */
+    /**
+     * Computes the seal for the transaction.
+     *
+     * @return the computed seal
+     */
     public String computeSeal() {
       String payload = this.txId + ":" + this.nullifier + ":" + this.zkProof.substring(0, 32);
       this.seal = "ZKCBDC-" + sha256(payload).substring(0, 16).toUpperCase(java.util.Locale.ROOT);
@@ -109,10 +274,49 @@ public class ZKCBDCEngine {
   @SuppressWarnings("DoNotCreateSecureRandomDirectly")
   private final SecureRandom random = new SecureRandom();
 
+  /** Javadoc */
+
+  /**
+   * @param totalSupply
+   * @param centralBankKey
+   */
+  /**
+   * Creates a new instance of the CBDC engine.
+   *
+   * @param totalSupply total supply
+   * @param centralBankKey key
+   */
+  /**
+   * Creates a new instance of the CBDC engine.
+   *
+   * @param totalSupply total supply
+   * @param centralBankKey key
+   */
   public ZKCBDCEngine(final long totalSupply, final String centralBankKey) {
     this.totalSupply = totalSupply;
   }
 
+  /** Javadoc */
+
+  /**
+   * @param accountId
+   * @param initialBalance
+   * @return
+   */
+  /**
+   * Creates a new account.
+   *
+   * @param accountId the account ID
+   * @param initialBalance the initial balance
+   * @return the newly created account state
+   */
+  /**
+   * Creates a new account.
+   *
+   * @param accountId the account ID
+   * @param initialBalance the initial balance
+   * @return the newly created account state
+   */
   public AccountState createAccount(final String accountId, final long initialBalance) {
     if (accounts.containsKey(accountId)) {
       throw new IllegalArgumentException("Account already exists");
@@ -124,10 +328,40 @@ public class ZKCBDCEngine {
     return account;
   }
 
+  /** Javadoc */
+
+  /**
+   * @param accountId
+   */
+  /**
+   * Adds an account to the sanctions list.
+   *
+   * @param accountId the account ID
+   */
+  /**
+   * Adds an account to the sanctions list.
+   *
+   * @param accountId the account ID
+   */
   public void addToSanctionsList(final String accountId) {
     sanctionsList.add(accountId);
   }
 
+  /** Javadoc */
+
+  /**
+   * @param accountId
+   */
+  /**
+   * Freezes an account.
+   *
+   * @param accountId the account ID
+   */
+  /**
+   * Freezes an account.
+   *
+   * @param accountId the account ID
+   */
   public void freezeAccount(final String accountId) {
     if (accounts.containsKey(accountId)) {
       accounts.get(accountId).isFrozen = true;
@@ -135,6 +369,30 @@ public class ZKCBDCEngine {
     }
   }
 
+  /** Javadoc */
+
+  /**
+   * @param senderPriv
+   * @param receiverPub
+   * @param amount
+   * @return
+   */
+  /**
+   * Creates a new confidential transaction.
+   *
+   * @param senderPriv the sender private key
+   * @param receiverPub the receiver public key
+   * @param amount the transaction amount
+   * @return the confidential transaction
+   */
+  /**
+   * Creates a new confidential transaction.
+   *
+   * @param senderPriv the sender private key
+   * @param receiverPub the receiver public key
+   * @param amount the transaction amount
+   * @return the confidential transaction
+   */
   public ConfidentialTransaction createTransaction(
       final String senderPriv, final String receiverPub, final long amount) {
     if (amount <= 0) {
@@ -203,6 +461,24 @@ public class ZKCBDCEngine {
     return tx;
   }
 
+  /** Javadoc */
+
+  /**
+   * @param tx
+   * @return
+   */
+  /**
+   * Verifies the proof for a transaction.
+   *
+   * @param tx the transaction to verify
+   * @return true if verified, false otherwise
+   */
+  /**
+   * Verifies the proof for a transaction.
+   *
+   * @param tx the transaction to verify
+   * @return true if verified, false otherwise
+   */
   public boolean verifyProof(final ConfidentialTransaction tx) {
     String recalculated =
         sha256(
