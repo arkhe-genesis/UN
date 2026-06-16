@@ -1,0 +1,15 @@
+FROM vllm/vllm-openai:v0.4.2
+
+# Set the working directory
+WORKDIR /app
+
+# Expose the API server port
+EXPOSE 8000
+
+# Set environment variables for vLLM
+ENV HOST=0.0.0.0
+ENV PORT=8000
+ENV MODEL=/models/cathedral-llm-v28.3
+
+# The entrypoint leverages the vLLM OpenAI-compatible server
+ENTRYPOINT ["python3", "-m", "vllm.entrypoints.openai.api_server", "--host", "0.0.0.0", "--port", "8000"]
