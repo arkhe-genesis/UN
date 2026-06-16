@@ -1,0 +1,7 @@
+{
+  "max_parallel_subagents": 4,
+  "delegation_threshold": 0.7,
+  "dla_memory_budget": 128,
+  "zk_proof_budget": 5,
+  "use_symbolic_planner": true
+}
