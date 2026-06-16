@@ -27,7 +27,7 @@ use usb_device::prelude::*;
 #[cfg(feature = "usb_cdc")]
 use usbd_serial::{SerialPort, USB_CLASS_CDC};
 
-const BABYBEAR_P: u32 = (1u64 << 31) - (1u64 << 27) + 1;
+const BABYBEAR_P: u32 = ((1u64 << 31) - (1u64 << 27) + 1) as u32;
 const MAGIC: [u8; 2] = [0xC4, 0xFE];
 const MAX_PAYLOAD: usize = 4096;
 const MAX_BATCH: usize = 16;
