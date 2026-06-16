@@ -6,5 +6,11 @@ members = [
     "reflect",
     "meta",
     "constitution",
-    "wormgraph"
+    "wormgraph",
+    "aegis",
+    "aegis-plausible-reasoner",
+    "cathedral-core"
 ]
+
+[workspace.dependencies]
+aegis-plausible-reasoner = { path = "aegis-plausible-reasoner" }

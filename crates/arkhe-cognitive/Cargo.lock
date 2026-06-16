@@ -3,6 +3,22 @@
 version = 4
 
 [[package]]
+name = "aegis"
+version = "0.1.0"
+dependencies = [
+ "aegis-plausible-reasoner",
+ "rand",
+]
+
+[[package]]
+name = "aegis-plausible-reasoner"
+version = "0.1.0"
+dependencies = [
+ "rand",
+ "serde",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -71,6 +87,13 @@ name = "cast"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
+
+[[package]]
+name = "cathedral-core"
+version = "0.1.0"
+dependencies = [
+ "aegis-plausible-reasoner",
+]
 
 [[package]]
 name = "cfg-if"
