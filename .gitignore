@@ -57,3 +57,4 @@ yolov8n.pt
 Cathedral/nexrl_data/
 Cathedral/zvec_data/
 Cathedral/logs/
+cathedral_memory.db
