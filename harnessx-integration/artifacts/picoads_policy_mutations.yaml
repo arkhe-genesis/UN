@@ -1,0 +1,45 @@
+# Examples of AEGIS policy mutations related to PicoAds
+
+# Mutation 1: Lower threshold for high-risk hubs
+- candidate_id: C-R15-PICO-01
+  bucket: config
+  component: zk_memory_proof_policy
+  changes:
+    - path: config.zk_memory_proof_policy.min_recommendation_value_usd
+      from: 10.0
+      to: 5.0
+    - path: config.zk_memory_proof_policy.allowed_recommendation_hubs
+      from: ["defi-yield", "agent-tools"]
+      to: ["defi-yield", "agent-tools", "crypto-tax-portfolio-tracking"]
+  predicted_impact:
+    - picoads/recommendation_volume: +35%
+    - zk_agi/memory_proof_recall: maintained
+  attribution_signature: "high_risk_action_rate > 0.35 && defi_hub_usage > 0.4"
+
+# Mutation 2: Force memory proof for unknown/new hubs
+- candidate_id: C-R15-PICO-02
+  bucket: config
+  component: zk_memory_proof_policy
+  changes:
+    - path: config.zk_memory_proof_policy.always_require_memory_proof_for_unknown_hubs
+      from: true
+      to: true
+    - path: config.zk_memory_proof_policy.require_memory_proof_for_recommendations
+      from: true
+      to: true
+  predicted_impact:
+    - security/risk_reduction: high
+    - picoads/conversion_rate: slight decrease (expected)
+  attribution_signature: "new_hub_detected || audit_flag_raised"
+
+# Mutation 3: Prefer agent-tools hub during stagnation
+- candidate_id: C-R15-PICO-03
+  bucket: config
+  component: zk_memory_proof_policy
+  changes:
+    - path: config.zk_memory_proof_policy.allowed_recommendation_hubs
+      from: ["defi-yield", "agent-tools"]
+      to: ["agent-tools", "saas-deals"]  # shift focus during stagnation
+  predicted_impact:
+    - picoads/roas: +12%
+  attribution_signature: "stagnation_rounds > 3 && acceptance_rate < 0.72"
