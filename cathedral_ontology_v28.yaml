@@ -1,0 +1,72 @@
+# ============================================================
+# Cathedral ARKHE Ontology – v28.0
+# ============================================================
+
+@base: "https://arkhe.cathedral.io/ontology#"
+@prefix : <https://arkhe.cathedral.io/ontology#>
+@prefix owl: <http://www.w3.org/2002/07/owl#>
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+@prefix xml: <http://www.w3.org/XML/1998/namespace>
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+@base <https://arkhe.cathedral.io/ontology> .
+
+<https://arkhe.cathedral.io/ontology> rdf:type owl:Ontology ;
+                                      owl:versionInfo "v28.0" ;
+                                      owl:versionIRI <https://arkhe.cathedral.io/ontology/v28.0> .
+
+classes:
+  Agent:
+    description: "Agent entity."
+  Hub:
+    description: "Hub entity."
+  Recommendation:
+    properties:
+      - hasProvenance: ProvenanceRecord
+
+  # === New Neuro-Symbolic Components ===
+  LLMOrchestrator:
+    description: "Bridge between natural language and formal ontology."
+    properties:
+      - delegatesTo: LlmBackend
+      - hasCurrentTask: CognitiveTask
+  LlmBackend:
+    description: "Abstraction for different LLM providers."
+    subClassOf: [GeminiFlash, ClaudeOpus, GptInstant, Grok, DeepSeekV4]
+  CognitiveTask:
+    description: "Unit of work for the orchestrator (e.g., translate, reason, act)."
+
+  # === Provenance & Trust ===
+  ProvenanceRecord:
+    description: "Immutable log of a decision or mutation."
+    properties:
+      - hasTimestamp: datetime
+      - hasAgent: Agent
+      - hasRationale: string        # e.g., 'acceptanceRate < 0.4'
+      - hasMutation: PolicyMutation
+      - hasLlmJustification: string # optional NL explanation
+
+  # === Constraints (enforced by PlausibleReasoner) ===
+  ConstraintViolation:
+    description: "A violation of an ontological constraint."
+    subClassOf: [LowPerformanceHub, MissingMemoryProof]
+
+relations:
+  - subject: LLMOrchestrator
+    predicate: delegatesTo
+    object: LlmBackend
+  - subject: Agent
+    predicate: generatesProvenance
+    object: ProvenanceRecord
+  - subject: PolicyMutation
+    predicate: hasProvenance
+    object: ProvenanceRecord
+
+axioms:
+  # Every mutation must have a provenance record.
+  - forall: PolicyMutation
+    must_exist: hasProvenance.ProvenanceRecord
+  # A recommendation without memory proof when required is a violation.
+  - forall: Recommendation
+    if: requiresMemoryProof == true AND cardinality(hasMemoryProof) == 0
+    then: isA MissingMemoryProof
