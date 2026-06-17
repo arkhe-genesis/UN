@@ -6,11 +6,13 @@
 use std::sync::Arc;
 
 use cathedral_orchestrator::geometry::CausalGeometryService;
-use cathedral_orchestrator::simulation::trajectory_store::TrajectoryStore;
-use cathedral_orchestrator::simulation::tool_simulator::ToolSimulator;
-use cathedral_orchestrator::simulation::runner::DeploymentSimulationRunner;
 use cathedral_orchestrator::governance::geometric_policy_engine::GeometricPolicyEngine;
-use cathedral_orchestrator::{PrivacyGuard, SemanticCache, SimpleEmbedder, MockLlmClient, MockAgent};
+use cathedral_orchestrator::simulation::runner::DeploymentSimulationRunner;
+use cathedral_orchestrator::simulation::tool_simulator::ToolSimulator;
+use cathedral_orchestrator::simulation::trajectory_store::TrajectoryStore;
+use cathedral_orchestrator::{
+    MockAgent, MockLlmClient, PrivacyGuard, SemanticCache, SimpleEmbedder,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,7 +23,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let geometry = Arc::new(CausalGeometryService::new(embedder.clone(), 768));
 
     let cache = Arc::new(SemanticCache::new(Default::default()).await?);
-    let privacy_guard = Arc::new(PrivacyGuard::load("/models/privacy-filter/model.gguf", None)?);
+    let privacy_guard = Arc::new(PrivacyGuard::load(
+        "/models/privacy-filter/model.gguf",
+        None,
+    )?);
 
     // 2. Configura Trajectory Store
     let trajectory_store = Arc::new(TrajectoryStore::new(cache, privacy_guard, 1000));
@@ -31,14 +36,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let goal = format!("Compress this text: Sample text number {}", i);
         let actions = vec![];
         let result = format!("Compressed result of {}", i);
-        trajectory_store.record_trajectory(
-            "demo_agent",
-            &goal,
-            actions,
-            &result,
-            vec![0.0; 384],
-            vec![0.0; 384],
-        ).await?;
+        trajectory_store
+            .record_trajectory(
+                "demo_agent",
+                &goal,
+                actions,
+                &result,
+                vec![0.0; 384],
+                vec![0.0; 384],
+            )
+            .await?;
     }
 
     // 4. Configura simulador de ferramentas
@@ -67,10 +74,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📊 Relatório da Simulação:");
     println!("   Trajetórias: {}", report.total_trajectories);
     println!("   Taxa de violação: {:.4}", report.violation_rate);
-    println!("   Fidelidade causal média: {:.3}", report.avg_causal_fidelity);
-    println!("   Score de compressão médio: {:.3}", report.avg_compression_score);
-    println!("   Intervalo de confiança: ({:.3}, {:.3})",
-             report.confidence_interval.0, report.confidence_interval.1);
+    println!(
+        "   Fidelidade causal média: {:.3}",
+        report.avg_causal_fidelity
+    );
+    println!(
+        "   Score de compressão médio: {:.3}",
+        report.avg_compression_score
+    );
+    println!(
+        "   Intervalo de confiança: ({:.3}, {:.3})",
+        report.confidence_interval.0, report.confidence_interval.1
+    );
     println!("   Anomalias: {:?}", report.novel_anomalies);
 
     // 9. Validação retrospetiva (simulada)
@@ -78,8 +93,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let validation = runner.validate_simulation(&report, actual_rate).await?;
     println!("\n✅ Validação:");
     println!("   Erro absoluto: {:.4}", validation.absolute_error);
-    println!("   Erro multiplicativo: {:.2}x", validation.multiplicative_error);
-    println!("   Dentro do intervalo de confiança: {}", validation.is_within_confidence);
+    println!(
+        "   Erro multiplicativo: {:.2}x",
+        validation.multiplicative_error
+    );
+    println!(
+        "   Dentro do intervalo de confiança: {}",
+        validation.is_within_confidence
+    );
 
     Ok(())
 }

@@ -2,15 +2,15 @@
 //! Camada unificada para toda a geometria causal.
 //! Selo: CATHEDRAL-ARKHE-v28.3.2-GEOMETRY-SERVICE-2026-06-16
 
+use ndarray::{Array1, ArrayView1};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use ndarray::{Array1, ArrayView1};
 
 use super::causal_inner_product::CovarianceMatrix;
 use super::concept_directions::ConceptCatalog;
+use super::embedding_bridge::EmbeddingModel;
 use super::steering_vectors::SteeringFactory;
 use super::subspace_operations::SubspaceOperations;
-use super::embedding_bridge::{EmbeddingModel};
 
 pub struct CausalGeometryService {
     cov: Arc<CovarianceMatrix>,
@@ -24,9 +24,10 @@ impl CausalGeometryService {
     pub fn new(embedder: Arc<dyn EmbeddingModel + Send + Sync>, embedding_dim: usize) -> Self {
         let cov = Arc::new(CovarianceMatrix::identity(embedding_dim));
         let catalog = Arc::new(RwLock::new(ConceptCatalog::new(cov.clone())));
-        let steering_factory = Arc::new(RwLock::new(
-            SteeringFactory::new((*cov).clone(), catalog.clone())
-        ));
+        let steering_factory = Arc::new(RwLock::new(SteeringFactory::new(
+            (*cov).clone(),
+            catalog.clone(),
+        )));
         let subspace_ops = Arc::new(SubspaceOperations::new(cov.clone()));
 
         Self {
@@ -50,7 +51,10 @@ impl CausalGeometryService {
         positive: &[Array1<f32>],
         negative: &[Array1<f32>],
     ) -> Result<(), String> {
-        self.catalog.write().await.register_concept(name, positive, negative)
+        self.catalog
+            .write()
+            .await
+            .register_concept(name, positive, negative)
     }
 
     /// Obtém a direção de um conceito
@@ -64,8 +68,16 @@ impl CausalGeometryService {
     }
 
     /// Gera steering vector para um conceito
-    pub async fn get_steering_vector(&self, concept: &str, intensity: f32) -> Result<Array1<f32>, String> {
-        self.steering_factory.write().await.get_steering_vector(concept, intensity).await
+    pub async fn get_steering_vector(
+        &self,
+        concept: &str,
+        intensity: f32,
+    ) -> Result<Array1<f32>, String> {
+        self.steering_factory
+            .write()
+            .await
+            .get_steering_vector(concept, intensity)
+            .await
     }
 
     /// Gera steering ortogonal a conceitos indesejados
@@ -75,7 +87,11 @@ impl CausalGeometryService {
         avoid: &[&str],
         intensity: f32,
     ) -> Result<Array1<f32>, String> {
-        self.steering_factory.write().await.get_orthogonal_steering(concept, avoid, intensity).await
+        self.steering_factory
+            .write()
+            .await
+            .get_orthogonal_steering(concept, avoid, intensity)
+            .await
     }
 
     /// Produto interno causal

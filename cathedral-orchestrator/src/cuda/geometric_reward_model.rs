@@ -52,7 +52,9 @@ impl GeometricCudaReward {
         let mut target_score = 0.0;
         for concept in &self.target_concepts {
             if let Some(dir) = self.geometry.get_concept_direction(concept).await {
-                target_score += self.geometry.causal_similarity(&kernel_emb.view(), &dir.view());
+                target_score += self
+                    .geometry
+                    .causal_similarity(&kernel_emb.view(), &dir.view());
             }
         }
         if !self.target_concepts.is_empty() {
@@ -63,7 +65,9 @@ impl GeometricCudaReward {
         let mut avoid_score = 0.0;
         for concept in &self.avoid_concepts {
             if let Some(dir) = self.geometry.get_concept_direction(concept).await {
-                avoid_score += self.geometry.causal_orthogonality(&kernel_emb.view(), &dir.view());
+                avoid_score += self
+                    .geometry
+                    .causal_orthogonality(&kernel_emb.view(), &dir.view());
             }
         }
         if !self.avoid_concepts.is_empty() {
@@ -77,8 +81,8 @@ impl GeometricCudaReward {
         let geometric_reward = (target_score + avoid_score + rank_score) / 3.0;
 
         // 3. Combinação
-        let total = base_reward * (1.0 - self.geometric_weight)
-                  + geometric_reward * self.geometric_weight;
+        let total =
+            base_reward * (1.0 - self.geometric_weight) + geometric_reward * self.geometric_weight;
 
         debug!(
             "GeometricCudaReward: speedup={:.2}x, base={:.3}, geom={:.3}, total={:.3}",

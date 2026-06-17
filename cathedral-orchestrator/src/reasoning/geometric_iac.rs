@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use crate::geometry::CausalGeometryService;
+use std::sync::Arc;
 
 pub struct SemanticCompressor;
 impl SemanticCompressor {
@@ -15,16 +15,18 @@ pub struct LlmLinguaResponse {
 
 impl LlmLinguaCompressor {
     pub async fn compress(&self, _prompt: &str, _rate: f32) -> Result<LlmLinguaResponse, String> {
-        Ok(LlmLinguaResponse { compressed_response: "".to_string() })
+        Ok(LlmLinguaResponse {
+            compressed_response: "".to_string(),
+        })
     }
 }
 
 pub struct GeometricCompressor;
 
 pub struct GeometricIAC {
-    level1: LlmLinguaCompressor,      // Token-level (existente)
-    level2: SemanticCompressor,       // Semantic (existente)
-    _level3: GeometricCompressor,      // Novo: usa CIP para preservar causalidade
+    level1: LlmLinguaCompressor,  // Token-level (existente)
+    level2: SemanticCompressor,   // Semantic (existente)
+    _level3: GeometricCompressor, // Novo: usa CIP para preservar causalidade
     geometry: Arc<CausalGeometryService>,
 }
 
@@ -57,7 +59,10 @@ impl GeometricIAC {
         Ok(self.geometry.embed(s))
     }
 
-    fn reconstruct_from_causal_projection(&self, _proj: &ndarray::Array1<f32>) -> Result<String, String> {
+    fn reconstruct_from_causal_projection(
+        &self,
+        _proj: &ndarray::Array1<f32>,
+    ) -> Result<String, String> {
         Ok("".to_string())
     }
 

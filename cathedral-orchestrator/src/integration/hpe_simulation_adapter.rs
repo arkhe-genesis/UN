@@ -5,10 +5,10 @@
 use std::sync::Arc;
 use tracing::{info, warn};
 
+use crate::simulation::runner::{DeploymentSimulationRunner, SimulationReport};
 use crate::HPENvidiaAgentToolkit;
 use crate::HpeDataFabricExporter;
 use crate::HpeZertoAdapter;
-use crate::simulation::runner::{SimulationReport, DeploymentSimulationRunner};
 
 /// Adaptador para HPE AI Factory
 pub struct HPESimulationAdapter {
@@ -49,15 +49,18 @@ fn main() -> Result<(), String> {
 "#;
 
         // Usa o toolkit para deployar como skill
-        let deployment = self.toolkit.deploy_agent(
-            "deployment-simulator",
-            skill_code,
-            serde_json::json!({
-                "max_tokens": 10_000_000,
-                "allowed_tools": ["simulate", "audit"],
-                "require_human_approval": false,
-            }),
-        ).await?;
+        let deployment = self
+            .toolkit
+            .deploy_agent(
+                "deployment-simulator",
+                skill_code,
+                serde_json::json!({
+                    "max_tokens": 10_000_000,
+                    "allowed_tools": ["simulate", "audit"],
+                    "require_human_approval": false,
+                }),
+            )
+            .await?;
 
         info!("Skill de simulação implantada: {}", deployment.id);
         Ok(deployment.id)
@@ -84,10 +87,13 @@ fn main() -> Result<(), String> {
 
         // Registra ações suspeitas no Zerto
         for anomaly in &report.novel_anomalies {
-            let _ = self.zerto.record_action(
-                "deployment-simulator",
-                &format!("anomaly_detected: {}", anomaly),
-            ).await;
+            let _ = self
+                .zerto
+                .record_action(
+                    "deployment-simulator",
+                    &format!("anomaly_detected: {}", anomaly),
+                )
+                .await;
         }
 
         info!("Métricas de simulação enviadas para HPE Data Fabric");
@@ -102,16 +108,24 @@ fn main() -> Result<(), String> {
         time_window_days: i64,
     ) -> Result<SimulationReport, String> {
         // 1. Executa simulação
-        let report = runner.run_simulation(num_trajectories, time_window_days).await?;
+        let report = runner
+            .run_simulation(num_trajectories, time_window_days)
+            .await?;
 
         // 2. Envia métricas
         self.push_simulation_metrics(&report).await?;
 
         // 3. Se houver anomalias, aciona alertas via Zerto
         if !report.novel_anomalies.is_empty() {
-            warn!("{} anomalias detectadas na simulação!", report.novel_anomalies.len());
+            warn!(
+                "{} anomalias detectadas na simulação!",
+                report.novel_anomalies.len()
+            );
             for anomaly in &report.novel_anomalies {
-                let _ = self.zerto.record_action("deployment-simulator", anomaly).await;
+                let _ = self
+                    .zerto
+                    .record_action("deployment-simulator", anomaly)
+                    .await;
             }
         }
 

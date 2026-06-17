@@ -1,9 +1,9 @@
-pub mod llm_api;
 pub mod cache;
 pub mod cuda;
 pub mod geometry;
 pub mod governance;
 pub mod integration;
+pub mod llm_api;
 pub mod reasoning;
 pub mod simulation;
 
@@ -40,8 +40,15 @@ pub struct CudaEvaluation {
 }
 
 impl CudaRewardModel {
-    pub async fn evaluate(&self, _reference: &str, _kernel: &str) -> Result<CudaEvaluation, String> {
-        Ok(CudaEvaluation { correct: true, cuda_speedup_compile: 1.5 })
+    pub async fn evaluate(
+        &self,
+        _reference: &str,
+        _kernel: &str,
+    ) -> Result<CudaEvaluation, String> {
+        Ok(CudaEvaluation {
+            correct: true,
+            cuda_speedup_compile: 1.5,
+        })
     }
 }
 
@@ -96,12 +103,25 @@ pub struct HpeDeployment {
 }
 
 impl HPENvidiaAgentToolkit {
-    pub async fn deploy_agent(&self, _name: &str, _code: &str, _policy: serde_json::Value) -> Result<HpeDeployment, String> {
-        Ok(HpeDeployment { id: "deployment_123".to_string() })
+    pub async fn deploy_agent(
+        &self,
+        _name: &str,
+        _code: &str,
+        _policy: serde_json::Value,
+    ) -> Result<HpeDeployment, String> {
+        Ok(HpeDeployment {
+            id: "deployment_123".to_string(),
+        })
     }
 }
 
 pub struct MockAgent;
+
+impl Default for MockAgent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl MockAgent {
     pub fn new() -> Self {
@@ -112,7 +132,9 @@ impl MockAgent {
 #[async_trait]
 impl CathedralAgent for MockAgent {
     async fn run(&self, _goal: &str) -> Result<AgentResult, String> {
-        Ok(AgentResult { final_answer: "Mock agent response".to_string() })
+        Ok(AgentResult {
+            final_answer: "Mock agent response".to_string(),
+        })
     }
 }
 

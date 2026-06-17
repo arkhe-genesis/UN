@@ -3,11 +3,11 @@
 //!
 //! Execute com: cargo run --example causal_geometry_demo
 
-use std::sync::Arc;
 use cathedral_orchestrator::geometry::CausalGeometryService;
-use cathedral_orchestrator::{SimpleEmbedder, AgentRole};
 use cathedral_orchestrator::geometry::EmbeddingModel;
 use cathedral_orchestrator::governance::geometric_policy_engine::GeometricPolicyEngine;
+use cathedral_orchestrator::{AgentRole, SimpleEmbedder};
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -25,26 +25,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let non_mem_emb = embedder.embed("disk disk disk");
 
     // 2. Registra conceitos
-    geometry.register_concept("code", &[code_emb], &[non_code_emb]).await?;
-    geometry.register_concept("safety", &[safe_emb], &[unsafe_emb]).await?;
-    geometry.register_concept("memory", &[mem_emb], &[non_mem_emb]).await?;
+    geometry
+        .register_concept("code", &[code_emb], &[non_code_emb])
+        .await?;
+    geometry
+        .register_concept("safety", &[safe_emb], &[unsafe_emb])
+        .await?;
+    geometry
+        .register_concept("memory", &[mem_emb], &[non_mem_emb])
+        .await?;
 
     // 3. Gera steering para "memory_efficient"
-    let _steering = geometry.get_steering_vector("memory_efficient", 0.5).await?;
+    let _steering = geometry
+        .get_steering_vector("memory_efficient", 0.5)
+        .await?;
 
     // 4. Mede ortogonalidade
-    let orth = geometry.concept_orthogonality("code", "safety").await.unwrap_or(0.0);
+    let orth = geometry
+        .concept_orthogonality("code", "safety")
+        .await
+        .unwrap_or(0.0);
     println!("Ortogonalidade code-safety: {:.3}", orth);
 
     // 5. Exemplo de política geométrica
     let policy_engine = GeometricPolicyEngine::new(geometry.clone());
-    let result = policy_engine.authorize(
-        AgentRole::Specialist,
-        "generate_kernel",
-        "cuda_kernel_code",
-        None,
-        None,
-    ).await;
+    let result = policy_engine
+        .authorize(
+            AgentRole::Specialist,
+            "generate_kernel",
+            "cuda_kernel_code",
+            None,
+            None,
+        )
+        .await;
 
     match result {
         Ok(()) => println!("✅ Ação autorizada"),

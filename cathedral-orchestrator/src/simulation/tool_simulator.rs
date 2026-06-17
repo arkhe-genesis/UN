@@ -2,10 +2,10 @@
 //! Simula chamadas de ferramentas com consistência causal via CIP.
 //! Selo: CATHEDRAL-ARKHE-v28.3.1-TOOL-SIMULATOR-2026-06-16
 
-use std::sync::Arc;
 use ndarray::Array1;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, warn};
+use std::sync::Arc;
+use tracing::debug;
 
 use crate::geometry::CausalGeometryService;
 use crate::LlmClient;
@@ -15,7 +15,7 @@ use crate::LlmClient;
 pub struct ToolResponse {
     pub tool_name: String,
     pub response: String,
-    pub causal_fidelity: f32,  // quão consistente causalmente
+    pub causal_fidelity: f32, // quão consistente causalmente
 }
 
 /// Histórico de chamadas de ferramentas
@@ -26,7 +26,8 @@ pub struct ToolCallHistory {
 
 impl ToolCallHistory {
     pub fn add(&mut self, tool: &str, params: &serde_json::Value, response: &ToolResponse) {
-        self.calls.push((tool.to_string(), params.clone(), response.clone()));
+        self.calls
+            .push((tool.to_string(), params.clone(), response.clone()));
     }
 
     pub fn last_n(&self, n: usize) -> Vec<(String, serde_json::Value, ToolResponse)> {
@@ -96,10 +97,9 @@ Tool response:"#,
 
         // 4. Valida consistência causal
         let response_emb = self.geometry.embed(&response_text);
-        let similarity = self.geometry.causal_similarity(
-            &context_embedding.view(),
-            &response_emb.view(),
-        );
+        let similarity = self
+            .geometry
+            .causal_similarity(&context_embedding.view(), &response_emb.view());
 
         // Se a similaridade for muito alta, pode ser um reflexo do contexto (não realista)
         // Se for muito baixa, pode ser inconsistente
@@ -133,12 +133,9 @@ Tool response:"#,
         let mut responses = Vec::new();
 
         for (tool, params) in tool_calls {
-            let response = self.simulate_tool_call(
-                tool,
-                params,
-                context_embedding,
-                &history,
-            ).await?;
+            let response = self
+                .simulate_tool_call(tool, params, context_embedding, &history)
+                .await?;
 
             history.add(tool, params, &response);
             responses.push(response);

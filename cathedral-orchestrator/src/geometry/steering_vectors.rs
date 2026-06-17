@@ -2,7 +2,7 @@
 //! Gera vetores de intervenção causais para controlar agentes.
 //! Selo: CATHEDRAL-ARKHE-v28.3.2-STEERING-2026-06-16
 
-use ndarray::{Array1, ArrayView1};
+use ndarray::Array1;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -15,7 +15,7 @@ use super::concept_directions::ConceptCatalog;
 pub struct SteeringVector {
     pub concept: String,
     pub vector: Array1<f32>,
-    pub intensity: f32,              // 0..1 (força da intervenção)
+    pub intensity: f32, // 0..1 (força da intervenção)
 }
 
 /// Fábrica de steering vectors
@@ -49,7 +49,11 @@ impl SteeringFactory {
         }
 
         // Obtém a direção do conceito
-        let dir = self.catalog.read().await.get_direction(concept)
+        let dir = self
+            .catalog
+            .read()
+            .await
+            .get_direction(concept)
             .ok_or_else(|| format!("Conceito '{}' não encontrado", concept))?;
 
         // O steering é a própria direção, mas pode ser purificada para remover
