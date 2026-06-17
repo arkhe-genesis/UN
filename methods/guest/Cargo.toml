@@ -1,0 +1,11 @@
+[package]
+name = "balance_proof"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# risc0-zkvm = "0.18" # Or whatever version is appropriate, omitted to keep basic build fast
+
+[[bin]]
+name = "balance_proof"
+path = "src/balance_proof.rs"
