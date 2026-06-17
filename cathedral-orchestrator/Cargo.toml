@@ -7,11 +7,13 @@ edition = "2021"
 tokio = { version = "1.0", features = ["full"] }
 anyhow = "1.0"
 async-trait = "0.1"
-serde = "1.0.228"
-serde_json = "1.0.150"
-reqwest = "0.13.4"
-qdrant-client = "1.18.0"
-uuid = "1.23.3"
-tracing = "0.1.44"
-seahash = "4.1.0"
-arcode = "0.2.4"
+ndarray = { version = "0.15", features = ["serde"] }
+nalgebra = "0.32"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.10.0", features = ["v4"] }
+chrono = "0.4"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+lazy_static = "1.4"
+prometheus = "0.13"
