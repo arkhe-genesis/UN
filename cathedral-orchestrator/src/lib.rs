@@ -145,3 +145,7 @@ impl LlmClient for MockLlmClient {
         Ok("Mock tool response".to_string())
     }
 }
+pub mod mcp;
+pub mod attestation;
+pub mod identity_attestation;
+pub mod voice;
