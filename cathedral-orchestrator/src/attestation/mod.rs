@@ -46,3 +46,17 @@ impl AttestationProvider for CathedralComputeProvider {
         })
     }
 }
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct UnifiedAttestation {
+    pub id: String,
+    pub payload: Vec<u8>,
+}
+
+#[async_trait]
+pub trait AttestationStore: Send + Sync {
+    type Error: std::fmt::Debug;
+
+    async fn store(&self, agent_id: &[u8; 32], test_id: &[u8; 32], commitment: &[u8; 32], receipt_hash: &[u8; 32], metadata: &str) -> Result<String, Self::Error>;
+    async fn get(&self, id: &str) -> Result<Option<UnifiedAttestation>, Self::Error>;
+}
