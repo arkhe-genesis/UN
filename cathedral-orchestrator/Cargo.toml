@@ -19,8 +19,4 @@ tracing-opentelemetry = "0.23"
 opentelemetry = { version = "0.22", features = ["metrics", "trace"] }
 lazy_static = "1.4"
 prometheus = "0.13"
-futures = "0.3"
-pyo3 = { version = "0.21", optional = true }
-[features]
-default = []
-pyo3 = ["dep:pyo3"]
+axum = "0.7"
