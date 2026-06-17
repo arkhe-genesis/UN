@@ -2,15 +2,15 @@
 //! Coleta e armazena trajetórias de agentes com remoção de PII.
 //! Selo: CATHEDRAL-ARKHE-v28.3.1-TRAJECTORY-STORE-2026-06-16
 
-use std::sync::Arc;
 use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use tracing::{debug, info, warn};
 use uuid::Uuid;
 
-use crate::SemanticCache;
 use crate::AgentAction;
 use crate::PrivacyGuard;
+use crate::SemanticCache;
 
 /// Trajetória desidentificada de um agente
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,9 +59,13 @@ impl TrajectoryStore {
         causal_fingerprint: Vec<f32>,
     ) -> Result<String, String> {
         // 1. Remove PII do goal e final_result
-        let clean_goal = self.privacy_guard.redact(goal, 0.6)
+        let clean_goal = self
+            .privacy_guard
+            .redact(goal, 0.6)
             .map_err(|e| format!("Falha na desidentificação do goal: {}", e))?;
-        let clean_result = self.privacy_guard.redact(final_result, 0.6)
+        let clean_result = self
+            .privacy_guard
+            .redact(final_result, 0.6)
             .map_err(|e| format!("Falha na desidentificação do resultado: {}", e))?;
 
         // 2. Cria trajetória
@@ -69,7 +73,8 @@ impl TrajectoryStore {
             id: Uuid::new_v4().to_string(),
             agent_id: agent_id.to_string(),
             goal: clean_goal,
-            actions: actions.into_iter()
+            actions: actions
+                .into_iter()
                 .map(|mut a| {
                     // Redige PII nas ações também
                     if let Ok(redacted) = self.privacy_guard.redact(&a.payload.to_string(), 0.6) {
@@ -91,10 +96,15 @@ impl TrajectoryStore {
         let value = serde_json::to_string(&trajectory)
             .map_err(|e| format!("Falha ao serializar: {}", e))?;
 
-        self.storage.set(&key, &value).await
+        self.storage
+            .set(&key, &value)
+            .await
             .map_err(|e| format!("Falha ao armazenar: {}", e))?;
 
-        debug!("Trajetória registrada: {} (agente: {})", trajectory.id, agent_id);
+        debug!(
+            "Trajetória registrada: {} (agente: {})",
+            trajectory.id, agent_id
+        );
         Ok(trajectory.id)
     }
 
@@ -126,7 +136,7 @@ impl TrajectoryStore {
         // Busca trajetórias recentes no cache semântico
         // Nota: em produção, usaríamos uma query no Qdrant com filtro de timestamp
         // Aqui, simulamos com uma busca por prefixo
-        let prefix = "trajectory:*";
+        let _prefix = "trajectory:*";
         let mut trajectories = Vec::new();
 
         // Coleta todas as trajetórias (limitado para demonstração)
@@ -153,12 +163,18 @@ impl TrajectoryStore {
             trajectories.truncate(count);
         }
 
-        info!("Amostradas {} trajetórias para simulação", trajectories.len());
+        info!(
+            "Amostradas {} trajetórias para simulação",
+            trajectories.len()
+        );
         Ok(trajectories)
     }
 
     /// Gera trajetórias sintéticas para testes (quando não há dados reais)
-    async fn generate_synthetic_trajectories(&self, count: usize) -> Result<Vec<DeidentifiedTrajectory>, String> {
+    async fn generate_synthetic_trajectories(
+        &self,
+        count: usize,
+    ) -> Result<Vec<DeidentifiedTrajectory>, String> {
         let mut trajectories = Vec::with_capacity(count);
 
         for i in 0..count {
@@ -166,15 +182,13 @@ impl TrajectoryStore {
                 id: Uuid::new_v4().to_string(),
                 agent_id: format!("synthetic_agent_{}", i % 5),
                 goal: format!("Synthetic goal {}: compress this text", i),
-                actions: vec![
-                    AgentAction {
-                        agent_id: format!("synthetic_agent_{}", i % 5),
-                        action_type: "compress".to_string(),
-                        payload: serde_json::json!({"text": "Lorem ipsum dolor sit amet"}),
-                        timestamp: Utc::now().timestamp(),
-                        is_suspicious: false,
-                    }
-                ],
+                actions: vec![AgentAction {
+                    agent_id: format!("synthetic_agent_{}", i % 5),
+                    action_type: "compress".to_string(),
+                    payload: serde_json::json!({"text": "Lorem ipsum dolor sit amet"}),
+                    timestamp: Utc::now().timestamp(),
+                    is_suspicious: false,
+                }],
                 final_result: format!("Compressed result {}", i),
                 timestamp: Utc::now().timestamp() - (i as i64 * 60),
                 context_embedding: vec![0.0; 384],
@@ -198,11 +212,16 @@ impl TrajectoryStore {
         if let Some(mut traj) = self.get_trajectory(trajectory_id).await? {
             traj.policy_violations.push(violation.to_string());
             let key = format!("trajectory:{}:{}", traj.agent_id, traj.id);
-            let value = serde_json::to_string(&traj)
-                .map_err(|e| format!("Falha ao serializar: {}", e))?;
-            self.storage.set(&key, &value).await
+            let value =
+                serde_json::to_string(&traj).map_err(|e| format!("Falha ao serializar: {}", e))?;
+            self.storage
+                .set(&key, &value)
+                .await
                 .map_err(|e| format!("Falha ao atualizar: {}", e))?;
-            debug!("Violação registrada na trajetória {}: {}", trajectory_id, violation);
+            debug!(
+                "Violação registrada na trajetória {}: {}",
+                trajectory_id, violation
+            );
         }
         Ok(())
     }

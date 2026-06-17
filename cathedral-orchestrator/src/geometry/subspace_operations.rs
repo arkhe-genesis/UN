@@ -1,6 +1,6 @@
-use std::sync::Arc;
-use ndarray::Array1;
 use super::causal_inner_product::CovarianceMatrix;
+use ndarray::Array1;
+use std::sync::Arc;
 
 pub struct SubspaceOperations {
     cov: Arc<CovarianceMatrix>,

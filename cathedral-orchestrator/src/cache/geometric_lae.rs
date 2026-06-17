@@ -1,7 +1,7 @@
+use crate::geometry::CausalGeometryService;
+use ndarray::Array1;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use ndarray::Array1;
-use crate::geometry::CausalGeometryService;
 
 pub struct ContextSegment;
 
@@ -23,8 +23,16 @@ pub struct GeometricLAE {
 }
 
 impl GeometricLAE {
-    pub fn new(predictor: Arc<Mutex<UtilityPredictor>>, geometry: Arc<CausalGeometryService>, min_utility: f32) -> Self {
-        Self { predictor, geometry, min_utility }
+    pub fn new(
+        predictor: Arc<Mutex<UtilityPredictor>>,
+        geometry: Arc<CausalGeometryService>,
+        min_utility: f32,
+    ) -> Self {
+        Self {
+            predictor,
+            geometry,
+            min_utility,
+        }
     }
     pub async fn should_evict(&self, segment: &ContextSegment, current_turn: u64) -> bool {
         let features = extract_features(segment, current_turn);

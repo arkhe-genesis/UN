@@ -2,7 +2,7 @@
 //! Extrai e mantém direções causais para conceitos conhecidos.
 //! Selo: CATHEDRAL-ARKHE-v28.3.2-CONCEPT-DIRS-2026-06-16
 
-use ndarray::{Array1, ArrayView1};
+use ndarray::Array1;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::debug;
@@ -14,8 +14,8 @@ use super::causal_inner_product::CovarianceMatrix;
 pub struct ConceptDirection {
     pub name: String,
     pub vector: Array1<f32>,
-    pub confidence: f32,           // 0..1 (quão bem definido)
-    pub sample_count: usize,       // número de exemplos usados
+    pub confidence: f32,     // 0..1 (quão bem definido)
+    pub sample_count: usize, // número de exemplos usados
 }
 
 /// Catálogo de conceitos conhecidos
@@ -77,7 +77,11 @@ impl ConceptCatalog {
             },
         );
 
-        debug!("Conceito '{}' registrado com {} amostras", name, positive_examples.len());
+        debug!(
+            "Conceito '{}' registrado com {} amostras",
+            name,
+            positive_examples.len()
+        );
         Ok(())
     }
 

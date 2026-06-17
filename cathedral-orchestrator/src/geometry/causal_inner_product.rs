@@ -2,8 +2,8 @@
 //! Implementação do produto interno causal: ⟨γ, γ'⟩_C = γᵀ Cov(γ)⁻¹ γ'
 //! Selo: CATHEDRAL-ARKHE-v28.3.2-CIP-2026-06-16
 
-use ndarray::{Array1, Array2, ArrayView1};
 use nalgebra as na;
+use ndarray::{Array1, Array2, ArrayView1};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
@@ -38,7 +38,10 @@ impl CovarianceMatrix {
         let mut cov: Array2<f32> = Array2::zeros((d, d));
         for v in vectors {
             let centered = v - &mean;
-            let outer_product = centered.view().insert_axis(ndarray::Axis(1)).dot(&centered.view().insert_axis(ndarray::Axis(0)));
+            let outer_product = centered
+                .view()
+                .insert_axis(ndarray::Axis(1))
+                .dot(&centered.view().insert_axis(ndarray::Axis(0)));
             cov += &outer_product;
         }
         cov /= (n - 1) as f32;
@@ -73,7 +76,11 @@ impl CovarianceMatrix {
             cov[[i, i]] = 1.0;
             cov_inv[[i, i]] = 1.0;
         }
-        Self { cov, cov_inv, dimension: d }
+        Self {
+            cov,
+            cov_inv,
+            dimension: d,
+        }
     }
 
     /// Produto interno causal: ⟨a, b⟩_C = aᵀ Cov⁻¹ b

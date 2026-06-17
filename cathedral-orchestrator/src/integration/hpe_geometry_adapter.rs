@@ -2,9 +2,9 @@
 //! Envia métricas geométricas para o HPE Data Fabric.
 //! Selo: CATHEDRAL-ARKHE-v28.3.2-HPE-GEOMETRY-2026-06-16
 
-use std::sync::Arc;
 use crate::geometry::CausalGeometryService;
 use crate::HpeDataFabricExporter;
+use std::sync::Arc;
 
 pub struct HpeGeometryAdapter {
     geometry: Arc<CausalGeometryService>,

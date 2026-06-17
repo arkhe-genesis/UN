@@ -4,14 +4,14 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
-use crate::CathedralAgent;
-use crate::governance::geometric_policy_engine::GeometricPolicyEngine;
-use crate::AgentRole;
-use crate::simulation::trajectory_store::{DeidentifiedTrajectory, TrajectoryStore};
-use crate::simulation::tool_simulator::{ToolSimulator};
 use crate::geometry::CausalGeometryService;
+use crate::governance::geometric_policy_engine::GeometricPolicyEngine;
+use crate::simulation::tool_simulator::ToolSimulator;
+use crate::simulation::trajectory_store::{DeidentifiedTrajectory, TrajectoryStore};
+use crate::AgentRole;
+use crate::CathedralAgent;
 
 /// Resultado da simulação de uma trajetória
 #[derive(Debug, Clone)]
@@ -68,12 +68,15 @@ impl DeploymentSimulationRunner {
         num_trajectories: usize,
         time_window_days: i64,
     ) -> Result<SimulationReport, String> {
-        info!("Iniciando simulação de deployment com {} trajetórias", num_trajectories);
+        info!(
+            "Iniciando simulação de deployment com {} trajetórias",
+            num_trajectories
+        );
 
-        let trajectories = self.trajectory_store.sample_trajectories(
-            num_trajectories,
-            time_window_days,
-        ).await?;
+        let trajectories = self
+            .trajectory_store
+            .sample_trajectories(num_trajectories, time_window_days)
+            .await?;
 
         if trajectories.is_empty() {
             return Err("Nenhuma trajetória disponível para simulação".into());
@@ -106,7 +109,8 @@ impl DeploymentSimulationRunner {
         let violation_rate = violations_total as f32 / total as f32;
 
         let avg_fidelity = results.iter().map(|r| r.causal_fidelity).sum::<f32>() / total as f32;
-        let avg_compression = results.iter().map(|r| r.compression_score).sum::<f32>() / total as f32;
+        let avg_compression =
+            results.iter().map(|r| r.compression_score).sum::<f32>() / total as f32;
 
         // Intervalo de confiança aproximado (como OpenAI's 1.5x)
         let error_margin = 0.5; // OpenAI alcançou 1.5x de erro multiplicativo
@@ -137,7 +141,10 @@ impl DeploymentSimulationRunner {
         debug!("Simulando trajetória: {}", traj.id);
 
         // 1. Replay com o agente candidato
-        let candidate_result = self.candidate_agent.run(&traj.goal).await
+        let candidate_result = self
+            .candidate_agent
+            .run(&traj.goal)
+            .await
             .map_err(|e| format!("Falha no agente candidato: {}", e))?;
 
         // 2. Simula chamadas de ferramenta (se houver)
@@ -145,20 +152,27 @@ impl DeploymentSimulationRunner {
         let context_emb = ndarray::Array1::from_vec(traj.context_embedding.clone());
 
         let simulated_tools = if !tool_calls.is_empty() {
-            let responses = self.tool_simulator.simulate_tool_calls(&tool_calls, &context_emb).await?;
+            let responses = self
+                .tool_simulator
+                .simulate_tool_calls(&tool_calls, &context_emb)
+                .await?;
             responses.iter().map(|r| r.response.clone()).collect()
         } else {
             Vec::new()
         };
 
         // 3. Verifica políticas usando o GeometricPolicyEngine
-        let violation = self.policy_engine.authorize(
-            AgentRole::Specialist,
-            &traj.goal,
-            &candidate_result.final_answer,
-            None,
-            None,
-        ).await.err();
+        let violation = self
+            .policy_engine
+            .authorize(
+                AgentRole::Specialist,
+                &traj.goal,
+                &candidate_result.final_answer,
+                None,
+                None,
+            )
+            .await
+            .err();
 
         // 4. Calcula fidelidade causal
         let response_emb = self.geometry.embed(&candidate_result.final_answer);
@@ -189,10 +203,7 @@ impl DeploymentSimulationRunner {
             if token.contains('(') && token.contains(')') {
                 if let Some((name, params)) = token.split_once('(') {
                     if let Some(params_str) = params.strip_suffix(')') {
-                        calls.push((
-                            name.to_string(),
-                            serde_json::json!({ "raw": params_str }),
-                        ));
+                        calls.push((name.to_string(), serde_json::json!({ "raw": params_str })));
                     }
                 }
             }

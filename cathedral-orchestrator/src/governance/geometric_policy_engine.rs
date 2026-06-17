@@ -2,10 +2,9 @@
 //! Políticas baseadas em ortogonalidade e subespaços causais.
 //! Selo: CATHEDRAL-ARKHE-v28.3.2-GEOMETRIC-POLICY-2026-06-16
 
+use ndarray::{Array1, ArrayView1};
 use std::collections::HashMap;
 use std::sync::Arc;
-use ndarray::{Array1, ArrayView1};
-use tracing::{debug, warn};
 
 use crate::geometry::CausalGeometryService;
 use crate::AgentRole;
@@ -13,13 +12,23 @@ use crate::AgentRole;
 #[derive(Debug, Clone)]
 pub enum GeometricPolicyType {
     /// A saída deve ser ortogonal a conceitos proibidos
-    OutputOrthogonalTo { forbidden: Vec<String>, threshold: f32 },
+    OutputOrthogonalTo {
+        forbidden: Vec<String>,
+        threshold: f32,
+    },
     /// Steering não pode afetar conceitos off-target
-    SteeringTargeted { target: String, max_correlation: f32 },
+    SteeringTargeted {
+        target: String,
+        max_correlation: f32,
+    },
     /// Representação não pode colapsar conceitos
     NoRepresentationCollapse { min_orthogonality: f32 },
     /// Conceitos devem ser separáveis
-    ConceptsMustBeSeparable { a: String, b: String, min_separation: f32 },
+    ConceptsMustBeSeparable {
+        a: String,
+        b: String,
+        min_separation: f32,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -108,13 +117,20 @@ impl GeometricPolicyEngine {
         };
 
         for policy in &self.policies {
-            if !policy.enabled { continue; }
+            if !policy.enabled {
+                continue;
+            }
 
             match &policy.policy_type {
-                GeometricPolicyType::OutputOrthogonalTo { forbidden, threshold } => {
+                GeometricPolicyType::OutputOrthogonalTo {
+                    forbidden,
+                    threshold,
+                } => {
                     for concept in forbidden {
                         if let Some(dir) = self.geometry.get_concept_direction(concept).await {
-                            let orth = self.geometry.causal_orthogonality(&output_vec.view(), &dir.view());
+                            let orth = self
+                                .geometry
+                                .causal_orthogonality(&output_vec.view(), &dir.view());
                             if orth < *threshold {
                                 return Err(format!(
                                     "Violação da política '{}': saída não é ortogonal a '{}' (orth={:.3} < {})",
@@ -124,9 +140,14 @@ impl GeometricPolicyEngine {
                         }
                     }
                 }
-                GeometricPolicyType::SteeringTargeted { target, max_correlation } => {
+                GeometricPolicyType::SteeringTargeted {
+                    target,
+                    max_correlation,
+                } => {
                     if let Some(dir) = self.geometry.get_concept_direction(target).await {
-                        let sim = self.geometry.causal_similarity(&action_vec.view(), &dir.view());
+                        let sim = self
+                            .geometry
+                            .causal_similarity(&action_vec.view(), &dir.view());
                         if sim > *max_correlation {
                             return Err(format!(
                                 "Violação da política '{}': steering correlacionado com '{}' (sim={:.3} > {})",
@@ -136,7 +157,9 @@ impl GeometricPolicyEngine {
                     }
                 }
                 GeometricPolicyType::NoRepresentationCollapse { min_orthogonality } => {
-                    let diversity = self.measure_representation_diversity(&output_vec.view()).await;
+                    let diversity = self
+                        .measure_representation_diversity(&output_vec.view())
+                        .await;
                     if diversity < *min_orthogonality {
                         return Err(format!(
                             "Violação da política '{}': representação colapsada (diversity={:.3} < {})",
@@ -144,8 +167,15 @@ impl GeometricPolicyEngine {
                         ));
                     }
                 }
-                GeometricPolicyType::ConceptsMustBeSeparable { a, b, min_separation } => {
-                    let orth = self.geometry.concept_orthogonality(a, b).await
+                GeometricPolicyType::ConceptsMustBeSeparable {
+                    a,
+                    b,
+                    min_separation,
+                } => {
+                    let orth = self
+                        .geometry
+                        .concept_orthogonality(a, b)
+                        .await
                         .unwrap_or(0.0);
                     if orth < *min_separation {
                         return Err(format!(
@@ -168,11 +198,12 @@ impl GeometricPolicyEngine {
                 projections.push(self.geometry.causal_dot(emb, &dir.view()));
             }
         }
-        if projections.len() < 2 { return 0.5; }
+        if projections.len() < 2 {
+            return 0.5;
+        }
         let mean = projections.iter().sum::<f32>() / projections.len() as f32;
-        let variance = projections.iter()
-            .map(|x| (x - mean).powi(2))
-            .sum::<f32>() / projections.len() as f32;
+        let variance =
+            projections.iter().map(|x| (x - mean).powi(2)).sum::<f32>() / projections.len() as f32;
         (variance / 0.5).clamp(0.0, 1.0)
     }
 }
