@@ -1,0 +1,20 @@
+[package]
+name = "cathedral-royalties"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+ethers = "2.0"
+tracing = "0.1"
+axum = "0.6"
+bytes = "1.0"
+hex = "0.4"
+reqwest = { version = "0.11", features = ["json"] }
+
+[[bin]]
+name = "migrate_pix_key"
+path = "src/bin/migrate_pix_key.rs"
