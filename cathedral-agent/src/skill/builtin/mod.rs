@@ -4,6 +4,7 @@ pub mod diagnose;
 pub mod tdd;
 pub mod improve_architecture;
 pub mod triage;
+pub mod qvac_inference;
 
 use crate::skill::manager::SkillManager;
 
@@ -16,6 +17,7 @@ pub async fn register_all(skill_mgr: &mut SkillManager) -> Result<Vec<String>, S
         tdd::tdd_skill(),
         improve_architecture::improve_architecture_skill(),
         triage::triage_skill(),
+        qvac_inference::qvac_inference_skill(),
     ];
 
     let mut registered = Vec::new();
