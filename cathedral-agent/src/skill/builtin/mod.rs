@@ -1,3 +1,5 @@
+pub mod desci_publish;
+pub mod desci_review;
 pub mod grill_me;
 pub mod to_prd;
 pub mod diagnose;
@@ -16,6 +18,8 @@ pub async fn register_all(skill_mgr: &mut SkillManager) -> Result<Vec<String>, S
         tdd::tdd_skill(),
         improve_architecture::improve_architecture_skill(),
         triage::triage_skill(),
+        desci_publish::desci_publish_skill(),
+        desci_review::desci_review_skill(),
     ];
 
     let mut registered = Vec::new();
