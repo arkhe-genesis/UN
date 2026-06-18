@@ -1,4 +1,4 @@
-use crate::skill::types::{Skill, SkillType, SkillStep};
+use crate::skill::types::{Skill, SkillStep, SkillType};
 
 pub fn triage_skill() -> Skill {
     Skill {
@@ -15,17 +15,41 @@ pub fn triage_skill() -> Skill {
 2. Assess priority
 3. Assign to the right person
 4. Estimate effort
-5. Route to appropriate workflow"#.to_string(),
+5. Route to appropriate workflow"#
+            .to_string(),
         steps: vec![
-            SkillStep { order: 1, description: "Classify the issue type".to_string(), expected_output: "Issue classification".to_string(), validation: None },
-            SkillStep { order: 2, description: "Assess priority".to_string(), expected_output: "Priority assessment".to_string(), validation: None },
-            SkillStep { order: 3, description: "Assign to the right person".to_string(), expected_output: "Assignee".to_string(), validation: None },
-            SkillStep { order: 4, description: "Estimate effort".to_string(), expected_output: "Effort estimate".to_string(), validation: None },
-            SkillStep { order: 5, description: "Route to appropriate workflow".to_string(), expected_output: "Workflow routing".to_string(), validation: None },
+            SkillStep {
+                order: 1,
+                description: "Classify the issue type".to_string(),
+                expected_output: "Issue classification".to_string(),
+                validation: None,
+            },
+            SkillStep {
+                order: 2,
+                description: "Assess priority".to_string(),
+                expected_output: "Priority assessment".to_string(),
+                validation: None,
+            },
+            SkillStep {
+                order: 3,
+                description: "Assign to the right person".to_string(),
+                expected_output: "Assignee".to_string(),
+                validation: None,
+            },
+            SkillStep {
+                order: 4,
+                description: "Estimate effort".to_string(),
+                expected_output: "Effort estimate".to_string(),
+                validation: None,
+            },
+            SkillStep {
+                order: 5,
+                description: "Route to appropriate workflow".to_string(),
+                expected_output: "Workflow routing".to_string(),
+                validation: None,
+            },
         ],
-        examples: vec![
-            "/triage this bug report".to_string(),
-        ],
+        examples: vec!["/triage this bug report".to_string()],
         dependencies: vec![],
         metadata: Default::default(),
         okf_bundle_id: None,

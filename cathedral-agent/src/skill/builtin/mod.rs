@@ -1,12 +1,12 @@
 pub mod desci_publish;
 pub mod desci_review;
-pub mod grill_me;
-pub mod to_prd;
 pub mod diagnose;
-pub mod tdd;
+pub mod grill_me;
 pub mod improve_architecture;
-pub mod triage;
 pub mod qvac_inference;
+pub mod tdd;
+pub mod to_prd;
+pub mod triage;
 
 use crate::skill::manager::SkillManager;
 

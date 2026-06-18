@@ -1,4 +1,4 @@
-use crate::skill::types::{Skill, SkillType, SkillExecution, ExecutionStatus};
+use crate::skill::types::{ExecutionStatus, Skill, SkillExecution, SkillType};
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
@@ -32,15 +32,18 @@ impl SkillManager {
 
     /// Importa skill de um arquivo SKILL.md
     pub async fn import_from_file(&mut self, path: &str) -> Result<&Skill, String> {
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| format!("Erro ao ler {}: {}", path, e))?;
+        let content =
+            std::fs::read_to_string(path).map_err(|e| format!("Erro ao ler {}: {}", path, e))?;
         let skill = Skill::from_markdown(&content, path)?;
         self.save_skill(&skill).await?;
         Ok(self.skills.get(&skill.name).unwrap())
     }
 
     /// Importa skills de um diretório (recursivo)
-    pub fn import_from_dir<'a>(&'a mut self, dir: &'a str) -> Pin<Box<dyn Future<Output = Result<Vec<String>, String>> + Send + 'a>> {
+    pub fn import_from_dir<'a>(
+        &'a mut self,
+        dir: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<String>, String>> + Send + 'a>> {
         Box::pin(async move {
             let mut imported = Vec::new();
             let entries = std::fs::read_dir(dir)
@@ -65,7 +68,8 @@ impl SkillManager {
 
     /// Lista skills por tipo
     pub fn list_by_type(&self, skill_type: SkillType) -> Vec<&Skill> {
-        self.skills.values()
+        self.skills
+            .values()
             .filter(|s| s.skill_type == skill_type)
             .collect()
     }
@@ -73,13 +77,20 @@ impl SkillManager {
     /// Encontra skills por trigger
     pub fn find_by_trigger(&self, text: &str) -> Vec<&Skill> {
         let lower = text.to_lowercase();
-        self.skills.values()
+        self.skills
+            .values()
             .filter(|s| s.triggers.iter().any(|t| lower.contains(&t.to_lowercase())))
             .collect()
     }
 
     /// Registra uma execução de skill
-    pub fn record_execution(&mut self, skill_name: &str, status: ExecutionStatus, output: Option<Vec<u8>>, error: Option<String>) {
+    pub fn record_execution(
+        &mut self,
+        skill_name: &str,
+        status: ExecutionStatus,
+        output: Option<Vec<u8>>,
+        error: Option<String>,
+    ) {
         self.executions.push(SkillExecution {
             skill_name: skill_name.to_string(),
             started_at: 0,
@@ -108,7 +119,11 @@ impl SkillManager {
         context.push_str("\n## Active Model-Invoked Skills\n\n");
         for skill in self.skills.values() {
             if skill.skill_type == SkillType::ModelInvoked && !skill.triggers.is_empty() {
-                context.push_str(&format!("- `{}` (triggers: {})\n", skill.name, skill.triggers.join(", ")));
+                context.push_str(&format!(
+                    "- `{}` (triggers: {})\n",
+                    skill.name,
+                    skill.triggers.join(", ")
+                ));
             }
         }
 

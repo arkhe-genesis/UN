@@ -1,5 +1,5 @@
-use crate::skill::types::ExecutionStatus;
 use crate::skill::manager::SkillManager;
+use crate::skill::types::ExecutionStatus;
 use crate::swarm::orchestrator::SwarmOrchestrator;
 use crate::swarm::types::SwarmResult;
 
@@ -10,13 +10,19 @@ pub struct SkillExecutor {
 
 impl SkillExecutor {
     pub fn new(orchestrator: SwarmOrchestrator, skill_manager: SkillManager) -> Self {
-        Self { orchestrator, skill_manager }
+        Self {
+            orchestrator,
+            skill_manager,
+        }
     }
 
     /// Executa uma skill como SwarmSpec
     pub async fn execute_skill(&mut self, skill_name: &str) -> Result<SwarmResult, String> {
         // Carrega a skill
-        let skill = self.skill_manager.load_skill(skill_name).await
+        let skill = self
+            .skill_manager
+            .load_skill(skill_name)
+            .await
             .ok_or_else(|| format!("Skill '{}' não encontrada", skill_name))?
             .clone();
 
@@ -40,8 +46,7 @@ impl SkillExecutor {
     /// Executa uma skill em background (sem retorno)
     pub async fn execute_skill_background(&mut self, skill_name: &str) {
         match self.execute_skill(skill_name).await {
-            Ok(_result) => {
-            }
+            Ok(_result) => {}
             Err(e) => {
                 self.skill_manager.record_execution(
                     skill_name,

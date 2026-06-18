@@ -1,4 +1,4 @@
-pub mod types;
+pub mod background_swarm;
 pub mod orchestrator;
 pub mod second_self;
-pub mod background_swarm;
+pub mod types;

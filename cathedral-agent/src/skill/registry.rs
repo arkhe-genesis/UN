@@ -41,8 +41,14 @@ impl SkillRegistry {
     }
 
     /// Importa uma skill do registro para o manager local
-    pub async fn import_skill(&mut self, name: &str, manager: &mut crate::skill::manager::SkillManager) -> Result<(), String> {
-        let skill = self.fetch_skill(name).await
+    pub async fn import_skill(
+        &mut self,
+        name: &str,
+        manager: &mut crate::skill::manager::SkillManager,
+    ) -> Result<(), String> {
+        let skill = self
+            .fetch_skill(name)
+            .await
             .ok_or_else(|| format!("Skill '{}' não encontrada no registro", name))?;
 
         manager.save_skill(&skill).await?;

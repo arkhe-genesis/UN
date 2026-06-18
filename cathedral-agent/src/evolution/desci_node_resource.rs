@@ -1,5 +1,5 @@
-use crate::evolution::resource::{Resource, ResourceMetadata, ResourceInterface, ResourceState};
-use serde::{Serialize, Deserialize};
+use crate::evolution::resource::{Resource, ResourceInterface, ResourceMetadata, ResourceState};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -152,7 +152,10 @@ pub struct DeSciNodeResource {
 impl DeSciNodeResource {
     pub fn new(node_id: &str, title: &str, author_npub: &str, _author_orcid: Option<&str>) -> Self {
         let now = chrono::Utc::now().timestamp() as u64;
-        let initial_version = NodeVersion { version: "1.0.0".to_string(), timestamp: now };
+        let initial_version = NodeVersion {
+            version: "1.0.0".to_string(),
+            timestamp: now,
+        };
         let version = "1.0.0".to_string();
 
         let metadata = ResourceMetadata {
@@ -204,14 +207,23 @@ impl DeSciNodeResource {
 }
 
 impl Resource for DeSciNodeResource {
-    fn metadata(&self) -> &ResourceMetadata { &self.metadata }
-    fn metadata_mut(&mut self) -> &mut ResourceMetadata { &mut self.metadata }
-    fn as_any(&self) -> &dyn std::any::Any { self }
-    fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
+    fn metadata(&self) -> &ResourceMetadata {
+        &self.metadata
+    }
+    fn metadata_mut(&mut self) -> &mut ResourceMetadata {
+        &mut self.metadata
+    }
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
     fn to_bytes(&self) -> Result<Vec<u8>, String> {
         serde_json::to_vec(self).map_err(|e| format!("Erro ao serializar DeSciNodeResource: {}", e))
     }
     fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        serde_json::from_slice(bytes).map_err(|e| format!("Erro ao deserializar DeSciNodeResource: {}", e))
+        serde_json::from_slice(bytes)
+            .map_err(|e| format!("Erro ao deserializar DeSciNodeResource: {}", e))
     }
 }

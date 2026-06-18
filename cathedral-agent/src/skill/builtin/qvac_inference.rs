@@ -43,7 +43,10 @@ impl QVACSession {
             .map_err(|e| format!("Erro ao criar diretório temporário: {}", e))?;
 
         // Note: using simple uuid alternative for mocking to avoid adding uuid dependency just for this
-        let id = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_micros();
+        let id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_micros();
         let model_path = temp_dir.join(format!("model_{}.gguf", id));
         std::fs::write(&model_path, model_data)
             .map_err(|e| format!("Erro ao escrever modelo: {}", e))?;
@@ -85,9 +88,15 @@ pub fn qvac_inference_skill() -> crate::skill::types::Skill {
         skill_type: crate::skill::types::SkillType::ModelInvoked,
         version: "1.0.0".to_string(),
         author: Some("Cathedral ARKHE + Tetherto QVAC".to_string()),
-        tags: vec!["inference".to_string(), "local".to_string(), "qvac".to_string(), "offline".to_string()],
+        tags: vec![
+            "inference".to_string(),
+            "local".to_string(),
+            "qvac".to_string(),
+            "offline".to_string(),
+        ],
         triggers: vec!["inferir local".to_string(), "qvac".to_string()],
-        instructions: "# Skill: QVAC Inference\n\nExecuta inferência local via QVAC Fabric.".to_string(),
+        instructions: "# Skill: QVAC Inference\n\nExecuta inferência local via QVAC Fabric."
+            .to_string(),
         steps: vec![],
         examples: vec!["Inferir localmente sobre soberania".to_string()],
         dependencies: vec!["qvac".to_string()],
@@ -135,10 +144,13 @@ impl QVACInferenceExecutor {
         let session = match cache.as_mut() {
             Some(s) => s,
             None => {
-                let model_data = self.storage
+                let model_data = self
+                    .storage
                     .get_by_path(&format!("models/{}", model_hash))
                     .await
-                    .map_err(|e| format!("Modelo '{}' não encontrado no HashTree: {}", model_hash, e))?;
+                    .map_err(|e| {
+                        format!("Modelo '{}' não encontrado no HashTree: {}", model_hash, e)
+                    })?;
 
                 let new_session = QVACSession::new(&model_data, self.config.clone()).await?;
                 *cache = Some(new_session);
@@ -155,13 +167,16 @@ impl QVACInferenceExecutor {
                 "model_hash": model_hash,
                 "backend": "qvac"
             });
-            let _ = self.trace_manager.add_artifact(
-                tid,
-                "qvac_inference.json",
-                serde_json::to_vec(&artifact).unwrap(),
-                "application/json",
-                "Inferência QVAC local",
-            ).await;
+            let _ = self
+                .trace_manager
+                .add_artifact(
+                    tid,
+                    "qvac_inference.json",
+                    serde_json::to_vec(&artifact).unwrap(),
+                    "application/json",
+                    "Inferência QVAC local",
+                )
+                .await;
         }
 
         Ok(result)

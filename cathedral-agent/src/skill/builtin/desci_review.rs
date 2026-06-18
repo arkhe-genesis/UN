@@ -1,4 +1,4 @@
-use crate::skill::types::{Skill, SkillType, SkillStep};
+use crate::skill::types::{Skill, SkillStep, SkillType};
 use std::collections::HashMap;
 
 pub fn desci_review_skill() -> Skill {

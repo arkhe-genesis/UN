@@ -9,11 +9,15 @@ pub struct X402Middleware {
 
 impl X402Middleware {
     pub fn new(facilitator_url: &str) -> Self {
-        Self { facilitator_url: facilitator_url.to_string() }
+        Self {
+            facilitator_url: facilitator_url.to_string(),
+        }
     }
 
     pub fn clone(&self) -> Self {
-        Self { facilitator_url: self.facilitator_url.clone() }
+        Self {
+            facilitator_url: self.facilitator_url.clone(),
+        }
     }
 
     pub fn with_price_tag(&self, _price_tag: String) -> Self {
@@ -30,8 +34,12 @@ impl V2Eip155Exact {
 
 pub struct USDC {}
 impl USDC {
-    pub fn base() -> Self { Self {} }
-    pub fn amount(&self, _amount: u64) -> u64 { _amount }
+    pub fn base() -> Self {
+        Self {}
+    }
+    pub fn amount(&self, _amount: u64) -> u64 {
+        _amount
+    }
 }
 
 pub struct X402RoyaltyServer {
@@ -51,26 +59,22 @@ impl X402RoyaltyServer {
         format!("0xmock_address")
     }
 
-    pub fn protect_route(
-        &self,
-        royalty_config: &RoyaltyConfig,
-    ) {
-        let price_str = royalty_config.price_per_access
+    pub fn protect_route(&self, royalty_config: &RoyaltyConfig) {
+        let price_str = royalty_config
+            .price_per_access
             .split_whitespace()
             .next()
             .unwrap_or("0.001");
 
         let price = (price_str.parse::<f64>().unwrap_or(0.001) * 1_000_000.0) as u64;
 
-        let receiver = royalty_config.royalty_split
+        let receiver = royalty_config
+            .royalty_split
             .first()
             .map(|s| self.npub_to_eth_address(&s.npub))
             .unwrap_or_else(|| "0x0000000000000000000000000000000000000000".to_string());
 
-        let price_tag = V2Eip155Exact::price_tag(
-            receiver,
-            USDC::base().amount(price),
-        );
+        let price_tag = V2Eip155Exact::price_tag(receiver, USDC::base().amount(price));
 
         let _protected_middleware = self.middleware.clone().with_price_tag(price_tag);
     }

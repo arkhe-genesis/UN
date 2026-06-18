@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::Duration;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::Mutex;
 
 // Basic mocked instant for WASM compatibility or when `tokio::time::Instant` isn't suitable in testing
@@ -18,9 +18,9 @@ impl MockInstant {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CircuitState {
-    Closed,     // Normal: requisições passam
-    Open,       // Falha: requisições são bloqueadas
-    HalfOpen,   // Teste: uma requisição passa para verificar recuperação
+    Closed,   // Normal: requisições passam
+    Open,     // Falha: requisições são bloqueadas
+    HalfOpen, // Teste: uma requisição passa para verificar recuperação
 }
 
 pub struct CircuitBreaker {
@@ -115,10 +115,15 @@ impl CircuitBreaker {
             Err(e) => {
                 let failures = self.failure_count.fetch_add(1, Ordering::SeqCst) + 1;
                 let current_state = *self.state.lock().await;
-                if current_state == CircuitState::Closed && failures >= self.config.failure_threshold {
+                if current_state == CircuitState::Closed
+                    && failures >= self.config.failure_threshold
+                {
                     *self.state.lock().await = CircuitState::Open;
                     *self.last_state_change.lock().await = MockInstant::now();
-                    tracing::warn!("🔌 Circuit Breaker aberto (threshold: {})", self.config.failure_threshold);
+                    tracing::warn!(
+                        "🔌 Circuit Breaker aberto (threshold: {})",
+                        self.config.failure_threshold
+                    );
                 } else if current_state == CircuitState::HalfOpen {
                     *self.state.lock().await = CircuitState::Open;
                     *self.last_state_change.lock().await = MockInstant::now();
