@@ -24,7 +24,10 @@ pub struct ResourceInterface {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum ResourceState { Active, Inactive }
+pub enum ResourceState {
+    Active,
+    Inactive,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProvenanceEntry {
@@ -42,14 +45,23 @@ pub trait Resource: Send + Sync + std::fmt::Debug {
     fn as_any(&self) -> &dyn std::any::Any;
     fn as_any_mut(&mut self) -> &mut dyn std::any::Any;
     fn to_bytes(&self) -> Result<Vec<u8>, String>;
-    fn from_bytes(bytes: &[u8]) -> Result<Self, String> where Self: Sized;
+    fn from_bytes(bytes: &[u8]) -> Result<Self, String>
+    where
+        Self: Sized;
 
     fn bump_version(&mut self, _rationale: &str) {
         // Simple version bump logic for mock
         self.metadata_mut().version = format!("{}-new", self.metadata().version);
     }
 
-    fn add_provenance(&mut self, action: &str, author: &str, desc: &str, tx_hash: Option<&str>, artifact_hash: Option<&str>) {
+    fn add_provenance(
+        &mut self,
+        action: &str,
+        author: &str,
+        desc: &str,
+        tx_hash: Option<&str>,
+        artifact_hash: Option<&str>,
+    ) {
         self.metadata_mut().provenance.push(ProvenanceEntry {
             action: action.to_string(),
             author: author.to_string(),

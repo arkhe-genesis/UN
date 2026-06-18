@@ -1,6 +1,6 @@
+use crate::eve_client::{EveClient, EveStrategy, EveTask};
+use crate::evolution::sepl::{EvolutionContext, Observation, Proposal};
 use crate::evolution::wallet_resource::WalletResource;
-use crate::evolution::sepl::{Observation, Proposal, EvolutionContext};
-use crate::eve_client::{EveClient, EveTask, EveStrategy};
 use crate::thread_index::ThreadIndex;
 use std::collections::HashMap;
 use tracing::info;
@@ -12,7 +12,10 @@ pub struct WalletEvolutionOperator {
 
 impl WalletEvolutionOperator {
     pub fn new(eve_client: EveClient, thread_index: ThreadIndex) -> Self {
-        Self { eve_client, thread_index }
+        Self {
+            eve_client,
+            thread_index,
+        }
     }
 
     /// Reflect sobre padrões de gasto e saldo
@@ -23,7 +26,10 @@ impl WalletEvolutionOperator {
     ) -> Result<Observation, String> {
         info!("🔍 [SEPL] Refletindo sobre carteira: {}", wallet.address);
 
-        let metrics = self.thread_index.get_usage_metrics(&wallet.metadata.id).await?;
+        let metrics = self
+            .thread_index
+            .get_usage_metrics(&wallet.metadata.id)
+            .await?;
         let balances = wallet.get_balance(None).await?;
 
         let prompt = format!(

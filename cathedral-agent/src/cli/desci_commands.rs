@@ -1,5 +1,5 @@
-use crate::swarm::second_self::SecondSelfOrchestrator;
 use crate::evolution::desci_node_resource::{DeSciNodeResource, FreeTier};
+use crate::swarm::second_self::SecondSelfOrchestrator;
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -39,7 +39,9 @@ pub enum DeSciCommand {
 impl DeSciCommand {
     pub fn parse(input: &str) -> Option<Self> {
         let parts: Vec<&str> = input.trim().split_whitespace().collect();
-        if parts.is_empty() { return None; }
+        if parts.is_empty() {
+            return None;
+        }
 
         match parts[0] {
             "/desci-publish" | "desci-publish" => {
@@ -63,44 +65,61 @@ impl DeSciCommand {
                             if i + 1 < parts.len() {
                                 title = parts[i + 1].to_string();
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
-                        "--publish" => { publish = true; i += 1; }
+                        "--publish" => {
+                            publish = true;
+                            i += 1;
+                        }
                         "--spdx" => {
                             if i + 1 < parts.len() {
                                 spdx_license = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--copyright" => {
                             if i + 1 < parts.len() {
                                 copyright_holder = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--software-version" => {
                             if i + 1 < parts.len() {
                                 software_version = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--derived-from" => {
                             if i + 1 < parts.len() {
                                 derived_from = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--ai-generated" => {
                             if i + 1 < parts.len() {
                                 ai_generated = Some(parts[i + 1].parse().unwrap_or(false));
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--training-data" => {
                             if i + 1 < parts.len() {
                                 training_data = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         _ => {
                             if title.is_empty() {
@@ -128,7 +147,9 @@ impl DeSciCommand {
                 })
             }
             "/desci-update" | "desci-update" => {
-                if parts.len() < 2 { return None; }
+                if parts.len() < 2 {
+                    return None;
+                }
                 let node_id = parts[1].to_string();
                 let mut spdx = None;
                 let mut copyright = None;
@@ -143,45 +164,69 @@ impl DeSciCommand {
                             if i + 1 < parts.len() {
                                 spdx = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--copyright" => {
                             if i + 1 < parts.len() {
                                 copyright = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--software-version" => {
                             if i + 1 < parts.len() {
                                 sw_version = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--derived-from" => {
                             if i + 1 < parts.len() {
                                 derived = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--ai-generated" => {
                             if i + 1 < parts.len() {
                                 ai = Some(parts[i + 1].parse().unwrap_or(false));
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--training-data" => {
                             if i + 1 < parts.len() {
                                 training = Some(parts[i + 1].to_string());
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
-                        _ => { i += 1; }
+                        _ => {
+                            i += 1;
+                        }
                     }
                 }
-                Some(Self::Update { node_id, spdx, copyright, software_version: sw_version, derived_from: derived, ai_generated: ai, training_data: training })
+                Some(Self::Update {
+                    node_id,
+                    spdx,
+                    copyright,
+                    software_version: sw_version,
+                    derived_from: derived,
+                    ai_generated: ai,
+                    training_data: training,
+                })
             }
             "/desci-royalties" | "desci-royalties" => {
-                if parts.len() < 2 { return None; }
+                if parts.len() < 2 {
+                    return None;
+                }
                 let node_id = parts[1].to_string();
                 let mut price = "0.001".to_string();
                 let mut currency = "USDC".to_string();
@@ -195,13 +240,17 @@ impl DeSciCommand {
                             if i + 1 < parts.len() {
                                 price = parts[i + 1].to_string();
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--currency" => {
                             if i + 1 < parts.len() {
                                 currency = parts[i + 1].to_string();
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--split" => {
                             if i + 1 < parts.len() {
@@ -212,27 +261,51 @@ impl DeSciCommand {
                                     splits.push((npub, share));
                                 }
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
                         "--free-tier" => {
                             if i + 1 < parts.len() {
                                 free_tier = parts[i + 1].parse::<u32>().ok();
                                 i += 2;
-                            } else { i += 1; }
+                            } else {
+                                i += 1;
+                            }
                         }
-                        _ => { i += 1; }
+                        _ => {
+                            i += 1;
+                        }
                     }
                 }
 
-                Some(Self::Royalties { node_id, price: format!("{} {}", price, currency), currency, splits, free_tier })
+                Some(Self::Royalties {
+                    node_id,
+                    price: format!("{} {}", price, currency),
+                    currency,
+                    splits,
+                    free_tier,
+                })
             }
             _ => None,
         }
     }
 
-    pub async fn execute(&self, orchestrator: &mut SecondSelfOrchestrator) -> Result<String, String> {
+    pub async fn execute(
+        &self,
+        orchestrator: &mut SecondSelfOrchestrator,
+    ) -> Result<String, String> {
         match self {
-            Self::Publish { title, spdx_license, copyright_holder, software_version, derived_from, ai_generated, training_data, .. } => {
+            Self::Publish {
+                title,
+                spdx_license,
+                copyright_holder,
+                software_version,
+                derived_from,
+                ai_generated,
+                training_data,
+                ..
+            } => {
                 let mut node = DeSciNodeResource::new(
                     &Uuid::new_v4().to_string(),
                     title,
@@ -249,15 +322,35 @@ impl DeSciCommand {
 
                 Ok(format!("✅ Node publicado com sucesso: {}", node.node_id))
             }
-            Self::Update { node_id, spdx, copyright, software_version, derived_from, ai_generated, training_data } => {
+            Self::Update {
+                node_id,
+                spdx,
+                copyright,
+                software_version,
+                derived_from,
+                ai_generated,
+                training_data,
+            } => {
                 let node_opt = orchestrator.get_desci_node(node_id);
                 if let Some(mut node) = node_opt {
-                    if let Some(s) = spdx { node.spdx_license = Some(s.clone()); }
-                    if let Some(c) = copyright { node.copyright_holder = Some(c.clone()); }
-                    if let Some(v) = software_version { node.software_version = Some(v.clone()); }
-                    if let Some(d) = derived_from { node.derived_from_dpid = Some(d.clone()); }
-                    if let Some(a) = ai_generated { node.ai_generated = Some(*a); }
-                    if let Some(t) = training_data { node.training_data_provenance = Some(t.clone()); }
+                    if let Some(s) = spdx {
+                        node.spdx_license = Some(s.clone());
+                    }
+                    if let Some(c) = copyright {
+                        node.copyright_holder = Some(c.clone());
+                    }
+                    if let Some(v) = software_version {
+                        node.software_version = Some(v.clone());
+                    }
+                    if let Some(d) = derived_from {
+                        node.derived_from_dpid = Some(d.clone());
+                    }
+                    if let Some(a) = ai_generated {
+                        node.ai_generated = Some(*a);
+                    }
+                    if let Some(t) = training_data {
+                        node.training_data_provenance = Some(t.clone());
+                    }
 
                     orchestrator.save_node_version(&mut node).await?;
                     Ok("✅ Metadados atualizados com sucesso".to_string())
@@ -265,16 +358,24 @@ impl DeSciCommand {
                     Err(format!("Node {} não encontrado", node_id))
                 }
             }
-            Self::Royalties { node_id, price, splits, free_tier, .. } => {
-                orchestrator.enable_royalties(
-                    node_id,
-                    price,
-                    splits.clone(),
-                    free_tier.map(|max| FreeTier {
-                        max_free_accesses: max,
-                        reset_interval: Some("daily".to_string()),
-                    }),
-                ).await?;
+            Self::Royalties {
+                node_id,
+                price,
+                splits,
+                free_tier,
+                ..
+            } => {
+                orchestrator
+                    .enable_royalties(
+                        node_id,
+                        price,
+                        splits.clone(),
+                        free_tier.map(|max| FreeTier {
+                            max_free_accesses: max,
+                            reset_interval: Some("daily".to_string()),
+                        }),
+                    )
+                    .await?;
 
                 let mut output = format!(
                     "✅ Royalties configurados para Node {}\n\n💰 Preço: {}\n📊 Split:\n",
@@ -284,7 +385,10 @@ impl DeSciCommand {
                     output.push_str(&format!("   - {}: {:.1}%\n", npub, share * 100.0));
                 }
                 if let Some(ft) = free_tier {
-                    output.push_str(&format!("🎁 Free tier: {} acessos gratuitos (reset diário)\n", ft));
+                    output.push_str(&format!(
+                        "🎁 Free tier: {} acessos gratuitos (reset diário)\n",
+                        ft
+                    ));
                 }
                 Ok(output)
             }

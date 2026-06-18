@@ -10,7 +10,10 @@ pub struct BackgroundSwarm {
 
 impl BackgroundSwarm {
     pub fn new(orchestrator: SecondSelfOrchestrator, interval: Duration) -> Self {
-        Self { orchestrator, _interval: interval }
+        Self {
+            orchestrator,
+            _interval: interval,
+        }
     }
 
     /// Roda skills do tipo Background periodicamente

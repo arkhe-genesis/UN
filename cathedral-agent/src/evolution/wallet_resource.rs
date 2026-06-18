@@ -1,5 +1,5 @@
-use crate::evolution::resource::{Resource, ResourceMetadata, ResourceInterface, ResourceState};
-use serde::{Serialize, Deserialize};
+use crate::evolution::resource::{Resource, ResourceInterface, ResourceMetadata, ResourceState};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 // ─── Tipos de Blockchain ──────────────────────────────────────────
@@ -196,7 +196,10 @@ impl WalletResource {
         amount: &str,
         token_address: Option<&str>,
     ) -> Result<Transaction, String> {
-        let tx = self.inner.send_transaction(to, amount, token_address).await?;
+        let tx = self
+            .inner
+            .send_transaction(to, amount, token_address)
+            .await?;
 
         let tx_hash = tx.hash.clone();
 
@@ -224,15 +227,24 @@ impl WalletResource {
 }
 
 impl Resource for WalletResource {
-    fn metadata(&self) -> &ResourceMetadata { &self.metadata }
-    fn metadata_mut(&mut self) -> &mut ResourceMetadata { &mut self.metadata }
-    fn as_any(&self) -> &dyn std::any::Any { self }
-    fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
+    fn metadata(&self) -> &ResourceMetadata {
+        &self.metadata
+    }
+    fn metadata_mut(&mut self) -> &mut ResourceMetadata {
+        &mut self.metadata
+    }
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
     fn to_bytes(&self) -> Result<Vec<u8>, String> {
         serde_json::to_vec(self).map_err(|e| format!("Erro ao serializar WalletResource: {}", e))
     }
     fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        serde_json::from_slice(bytes).map_err(|e| format!("Erro ao deserializar WalletResource: {}", e))
+        serde_json::from_slice(bytes)
+            .map_err(|e| format!("Erro ao deserializar WalletResource: {}", e))
     }
 }
 

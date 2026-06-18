@@ -1,4 +1,4 @@
-use crate::skill::types::{Skill, SkillType, SkillStep};
+use crate::skill::types::{Skill, SkillStep, SkillType};
 use std::collections::HashMap;
 
 pub fn desci_publish_skill() -> Skill {
@@ -8,9 +8,15 @@ pub fn desci_publish_skill() -> Skill {
         skill_type: SkillType::ModelInvoked,
         version: "1.0.0".to_string(),
         author: Some("Cathedral ARKHE".to_string()),
-        tags: vec!["desci".to_string(), "publish".to_string(), "research".to_string()],
+        tags: vec![
+            "desci".to_string(),
+            "publish".to_string(),
+            "research".to_string(),
+        ],
         triggers: vec!["publicar pesquisa".to_string(), "desci publish".to_string()],
-        instructions: "Use esta skill para publicar um objeto de pesquisa no ecossistema DeSci Nodes.".to_string(),
+        instructions:
+            "Use esta skill para publicar um objeto de pesquisa no ecossistema DeSci Nodes."
+                .to_string(),
         steps: vec![
             SkillStep {
                 order: 1,
@@ -26,7 +32,8 @@ pub fn desci_publish_skill() -> Skill {
             },
             SkillStep {
                 order: 3,
-                description: "Armazena no HashTree como OKF Bundle com referência ao dPID".to_string(),
+                description: "Armazena no HashTree como OKF Bundle com referência ao dPID"
+                    .to_string(),
                 expected_output: "ContentHash".to_string(),
                 validation: None,
             },

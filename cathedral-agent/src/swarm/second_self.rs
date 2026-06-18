@@ -1,19 +1,19 @@
+use crate::skill::executor::SkillExecutor;
 use crate::skill::manager::SkillManager;
 use crate::skill::types::SkillType;
-use crate::skill::executor::SkillExecutor;
 use crate::swarm::orchestrator::SwarmOrchestrator;
 use crate::swarm::types::SwarmResult;
 
-use crate::skill::builtin::qvac_inference::{QVACInferenceExecutor, QVACConfig};
-use crate::evolution::sepl::AutogenesisOperator;
+use crate::evolution::desci_node_resource::{DeSciNodeResource, FreeTier, RoyaltySplit};
 use crate::evolution::pipeline::EvolutionPipeline;
-use crate::sandbox::WasiPreview2Sandbox;
+use crate::evolution::sepl::AutogenesisOperator;
 use crate::hashtree_adapter::HashTreeStorage;
-use crate::trace_manager::TraceManager;
+use crate::integrations::x402::{X402Client, X402RoyaltyServer};
+use crate::sandbox::WasiPreview2Sandbox;
+use crate::skill::builtin::qvac_inference::{QVACConfig, QVACInferenceExecutor};
 use crate::thread_index::ThreadIndex;
+use crate::trace_manager::TraceManager;
 use crate::version_manager::VersionManager;
-use crate::integrations::x402::{X402RoyaltyServer, X402Client};
-use crate::evolution::desci_node_resource::{DeSciNodeResource, RoyaltySplit, FreeTier};
 use bytes::Bytes;
 use std::sync::Arc;
 
@@ -27,7 +27,14 @@ impl AgentIdentity {
         None
     }
 
-    pub fn add_provenance(&self, _action: &str, _author: &str, _desc: &str, _tx_hash: Option<&str>, _artifact_hash: Option<&str>) {
+    pub fn add_provenance(
+        &self,
+        _action: &str,
+        _author: &str,
+        _desc: &str,
+        _tx_hash: Option<&str>,
+        _artifact_hash: Option<&str>,
+    ) {
         // mocked
     }
 }
@@ -77,9 +84,14 @@ impl SecondSelfOrchestrator {
         qvac_config: QVACConfig,
     ) -> Result<(), String> {
         let storage = self.storage.clone();
-        let trace_manager = self.trace_manager.as_ref()
-            .ok_or("TraceManager não inicializado")?.clone();
-        let _thread_index = self.thread_index.as_ref()
+        let trace_manager = self
+            .trace_manager
+            .as_ref()
+            .ok_or("TraceManager não inicializado")?
+            .clone();
+        let _thread_index = self
+            .thread_index
+            .as_ref()
             .ok_or("ThreadIndex não inicializado")?;
         let eve_client = crate::eve_client::EveClient {};
 
@@ -91,19 +103,17 @@ impl SecondSelfOrchestrator {
             default_model_hash,
             qvac_config.clone(),
             5,
-        ).await?;
+        )
+        .await?;
 
         let operator = Box::new(operator);
         let sandbox = WasiPreview2Sandbox::new().await?;
-        let version_manager = self.version_manager.as_ref()
+        let version_manager = self
+            .version_manager
+            .as_ref()
             .ok_or("VersionManager não inicializado")?;
 
-        let pipeline = EvolutionPipeline::new(
-            operator,
-            sandbox,
-            version_manager.clone(),
-            5,
-        );
+        let pipeline = EvolutionPipeline::new(operator, sandbox, version_manager.clone(), 5);
 
         self.evolution_pipeline = Some(pipeline);
         self.qvac_executor = Some(QVACInferenceExecutor::new(
@@ -210,14 +220,15 @@ impl SecondSelfOrchestrator {
     pub async fn enable_royalties(
         &mut self,
         _node_id: &str,
-        _price: &str,                    // "0.001 USDC"
-        splits: Vec<(String, f32)>,     // (npub, share)
+        _price: &str,               // "0.001 USDC"
+        splits: Vec<(String, f32)>, // (npub, share)
         _free_tier: Option<FreeTier>,
     ) -> Result<(), String> {
         // Using mocked implementations
         let _now = chrono::Utc::now().timestamp() as u64;
 
-        let royalty_splits: Vec<RoyaltySplit> = splits.into_iter()
+        let royalty_splits: Vec<RoyaltySplit> = splits
+            .into_iter()
             .map(|(npub, share)| {
                 let orcid = self.identity.get_orcid_by_npub(&npub);
                 let eth_address = self.x402_server.npub_to_eth_address(&npub);
@@ -244,14 +255,21 @@ impl SecondSelfOrchestrator {
         component_id: &str,
         wallet_private_key: &str,
     ) -> Result<Bytes, String> {
-        let node = self.get_desci_node(dpid)
+        let node = self
+            .get_desci_node(dpid)
             .ok_or_else(|| format!("Node {} não encontrado", dpid))?;
 
-        let url = format!("{}/desci/{}/components/{}", self.base_url, dpid, component_id);
+        let url = format!(
+            "{}/desci/{}/components/{}",
+            self.base_url, dpid, component_id
+        );
 
         if let Some(royalty) = &node.royalty_config {
             if royalty.enabled {
-                return self.x402_client.download_with_payment(&url, wallet_private_key).await;
+                return self
+                    .x402_client
+                    .download_with_payment(&url, wallet_private_key)
+                    .await;
             }
         }
 

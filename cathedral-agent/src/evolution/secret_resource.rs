@@ -1,8 +1,8 @@
 // src/evolution/secret_resource.rs
 //! Recurso RSPL para gerenciamento de segredos via PearPass
 
-use crate::evolution::resource::{Resource, ResourceMetadata, ResourceInterface, ResourceState};
-use serde::{Serialize, Deserialize};
+use crate::evolution::resource::{Resource, ResourceInterface, ResourceMetadata, ResourceState};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 // ─── Tipos de Segredos ────────────────────────────────────────────
@@ -127,7 +127,10 @@ impl SecretResource {
     }
 
     pub async fn delete_secret(&mut self, name: &str) -> Result<(), String> {
-        let pos = self.secrets.iter().position(|s| s.name == name)
+        let pos = self
+            .secrets
+            .iter()
+            .position(|s| s.name == name)
             .ok_or_else(|| format!("Secret '{}' não encontrado", name))?;
         let secret = self.secrets.remove(pos);
         self.metadata.updated_at = chrono::Utc::now().timestamp() as u64;
@@ -147,9 +150,13 @@ impl SecretResource {
         // Simulação:
         let author = self.metadata.author.clone();
         let cloned_secret = {
-            let secret = self.secrets.iter_mut().find(|s| s.name == name)
+            let secret = self
+                .secrets
+                .iter_mut()
+                .find(|s| s.name == name)
                 .ok_or_else(|| format!("Secret '{}' não encontrado", name))?;
-            secret.encrypted_value = format!("new_encrypted_value_{}", chrono::Utc::now().timestamp());
+            secret.encrypted_value =
+                format!("new_encrypted_value_{}", chrono::Utc::now().timestamp());
             secret.updated_at = chrono::Utc::now().timestamp() as u64;
             secret.clone()
         };
@@ -166,14 +173,23 @@ impl SecretResource {
 }
 
 impl Resource for SecretResource {
-    fn metadata(&self) -> &ResourceMetadata { &self.metadata }
-    fn metadata_mut(&mut self) -> &mut ResourceMetadata { &mut self.metadata }
-    fn as_any(&self) -> &dyn std::any::Any { self }
-    fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
+    fn metadata(&self) -> &ResourceMetadata {
+        &self.metadata
+    }
+    fn metadata_mut(&mut self) -> &mut ResourceMetadata {
+        &mut self.metadata
+    }
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn std::any::Any {
+        self
+    }
     fn to_bytes(&self) -> Result<Vec<u8>, String> {
         serde_json::to_vec(self).map_err(|e| format!("Erro ao serializar SecretResource: {}", e))
     }
     fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        serde_json::from_slice(bytes).map_err(|e| format!("Erro ao deserializar SecretResource: {}", e))
+        serde_json::from_slice(bytes)
+            .map_err(|e| format!("Erro ao deserializar SecretResource: {}", e))
     }
 }

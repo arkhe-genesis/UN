@@ -1,9 +1,11 @@
 use crate::evolution::resource::{Resource, ResourceState};
-use crate::evolution::sepl::{Change, ChangeType, Proposal, Verification, EvolutionContext, Observation};
-use crate::skill::builtin::qvac_inference::QVACConfig;
+use crate::evolution::sepl::{
+    Change, ChangeType, EvolutionContext, Observation, Proposal, Verification,
+};
 use crate::hashtree_adapter::HashTreeStorage;
+use crate::skill::builtin::qvac_inference::QVACConfig;
 use crate::trace_manager::TraceManager;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::info;
@@ -52,8 +54,16 @@ pub struct LoRAFineTuner {
 }
 
 impl LoRAFineTuner {
-    pub fn new(storage: HashTreeStorage, trace_manager: Arc<TraceManager>, qvac_config: QVACConfig) -> Self {
-        Self { storage, trace_manager, qvac_config }
+    pub fn new(
+        storage: HashTreeStorage,
+        trace_manager: Arc<TraceManager>,
+        qvac_config: QVACConfig,
+    ) -> Self {
+        Self {
+            storage,
+            trace_manager,
+            qvac_config,
+        }
     }
 
     pub async fn finetune(
@@ -63,22 +73,29 @@ impl LoRAFineTuner {
     ) -> Result<LoRAAdapter, String> {
         info!("🧬 [LoRA] Iniciando fine-tuning: {}", config.adapter_name);
 
-        let base_model_data = self.storage.get_by_path(&format!("models/{}", config.base_model_hash)).await
+        let base_model_data = self
+            .storage
+            .get_by_path(&format!("models/{}", config.base_model_hash))
+            .await
             .map_err(|e| format!("Erro ao carregar modelo base: {}", e))?;
         let base_model_path = self.save_temp_model(&base_model_data).await?;
 
         let dataset_path = match &config.dataset_path {
             Some(path) => path.clone(),
-            None => self.generate_synthetic_dataset(&config.adapter_name).await?,
+            None => {
+                self.generate_synthetic_dataset(&config.adapter_name)
+                    .await?
+            }
         };
 
-        let result = self.run_qvac_finetune(
-            &base_model_path,
-            &dataset_path,
-            config,
-        ).await?;
+        let result = self
+            .run_qvac_finetune(&base_model_path, &dataset_path, config)
+            .await?;
 
-        let adapter_hash = self.storage.put(&result.adapter_bytes).await
+        let adapter_hash = self
+            .storage
+            .put(&result.adapter_bytes)
+            .await
             .map_err(|e| format!("Erro ao salvar adaptador: {}", e))?;
 
         let adapter = LoRAAdapter {
@@ -97,13 +114,16 @@ impl LoRAFineTuner {
                 "metrics": adapter.metrics,
                 "adapter_hash": adapter.weights_hash,
             });
-            let _ = self.trace_manager.add_artifact(
-                tid,
-                &format!("lora_adapter_{}.json", adapter.name),
-                serde_json::to_vec(&artifact).unwrap(),
-                "application/json",
-                "Adaptador LoRA gerado via QVAC",
-            ).await;
+            let _ = self
+                .trace_manager
+                .add_artifact(
+                    tid,
+                    &format!("lora_adapter_{}.json", adapter.name),
+                    serde_json::to_vec(&artifact).unwrap(),
+                    "application/json",
+                    "Adaptador LoRA gerado via QVAC",
+                )
+                .await;
         }
 
         info!("✅ [LoRA] Fine-tuning concluído: {}", adapter.name);
@@ -135,7 +155,10 @@ impl LoRAFineTuner {
         std::fs::create_dir_all(&temp_dir)
             .map_err(|e| format!("Erro ao criar diretório temporário: {}", e))?;
 
-        let id = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_micros();
+        let id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_micros();
         let path = temp_dir.join(format!("base_{}.gguf", id));
         std::fs::write(&path, data)
             .map_err(|e| format!("Erro ao escrever modelo temporário: {}", e))?;
@@ -176,7 +199,10 @@ impl crate::evolution::sepl::AutogenesisOperator {
         base_model_hash: &str,
         adapter_name: &str,
     ) -> Result<Proposal, String> {
-        info!("💡 [SEPL] Propondo fine-tuning LoRA para: {}", context.resource_id);
+        info!(
+            "💡 [SEPL] Propondo fine-tuning LoRA para: {}",
+            context.resource_id
+        );
 
         let prompt = format!(
             "Based on observation: {:?}, propose a LoRA fine-tuning configuration for model {}.
@@ -185,8 +211,14 @@ impl crate::evolution::sepl::AutogenesisOperator {
             observation, base_model_hash
         );
 
-        let trace_id = self.trace_manager.start_trace(&context.resource_id).await.ok();
-        let response = self.infer_with_strategy(&prompt, trace_id.as_deref()).await?;
+        let trace_id = self
+            .trace_manager
+            .start_trace(&context.resource_id)
+            .await
+            .ok();
+        let response = self
+            .infer_with_strategy(&prompt, trace_id.as_deref())
+            .await?;
 
         let lora_config = LoRAConfig {
             rank: 16,
@@ -230,7 +262,10 @@ impl crate::evolution::sepl::AutogenesisOperator {
             return Err("Verificação falhou, LoRA não será aplicado".to_string());
         }
 
-        info!("✅ [SEPL] Aplicando LoRA fine-tuning para: {}", proposal.resource_id);
+        info!(
+            "✅ [SEPL] Aplicando LoRA fine-tuning para: {}",
+            proposal.resource_id
+        );
 
         let tuner = LoRAFineTuner::new(
             self.storage.clone(),
@@ -244,8 +279,14 @@ impl crate::evolution::sepl::AutogenesisOperator {
 
         let metadata = resource.metadata_mut();
         metadata.tags.push(format!("lora:{}", adapter.name));
-        metadata.metadata.insert("lora_adapter_hash".to_string(), adapter.weights_hash.clone());
-        metadata.metadata.insert("lora_base_model".to_string(), adapter.base_model_hash.clone());
+        metadata.metadata.insert(
+            "lora_adapter_hash".to_string(),
+            adapter.weights_hash.clone(),
+        );
+        metadata.metadata.insert(
+            "lora_base_model".to_string(),
+            adapter.base_model_hash.clone(),
+        );
 
         info!("✅ LoRA adaptador {} salvo no HashTree", adapter.name);
         Ok(())

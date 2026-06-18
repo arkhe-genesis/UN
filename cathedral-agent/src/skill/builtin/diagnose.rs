@@ -1,4 +1,4 @@
-use crate::skill::types::{Skill, SkillType, SkillStep};
+use crate::skill::types::{Skill, SkillStep, SkillType};
 
 pub fn diagnose_skill() -> Skill {
     Skill {

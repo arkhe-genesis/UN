@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvolutionContext {
@@ -59,14 +59,14 @@ pub struct RewardScore {
     pub total: f64,
 }
 
-use crate::eve_client::{EveClient, EveTask, EveStrategy};
-use crate::thread_index::ThreadIndex;
-use crate::hashtree_adapter::HashTreeStorage;
-use crate::trace_manager::TraceManager;
-use crate::skill::builtin::qvac_inference::{QVACInferenceExecutor, QVACConfig};
-use crate::error_handling::retry::{RetryConfig, RetryContext};
 use crate::error_handling::circuit_breaker::{CircuitBreaker, CircuitBreakerConfig};
+use crate::error_handling::retry::{RetryConfig, RetryContext};
+use crate::eve_client::{EveClient, EveStrategy, EveTask};
 use crate::evolution::resource::Resource;
+use crate::hashtree_adapter::HashTreeStorage;
+use crate::skill::builtin::qvac_inference::{QVACConfig, QVACInferenceExecutor};
+use crate::thread_index::ThreadIndex;
+use crate::trace_manager::TraceManager;
 use std::sync::Arc;
 use tracing::{info, warn};
 
@@ -114,7 +114,11 @@ impl AutogenesisOperator {
         self.use_qvac = false;
     }
 
-    pub async fn infer_with_strategy(&self, prompt: &str, trace_id: Option<&str>) -> Result<String, String> {
+    pub async fn infer_with_strategy(
+        &self,
+        prompt: &str,
+        trace_id: Option<&str>,
+    ) -> Result<String, String> {
         if self.use_qvac {
             if let Some(qvac) = &self.qvac_executor {
                 match qvac.infer(prompt, None, trace_id).await {
@@ -133,38 +137,60 @@ impl AutogenesisOperator {
         let prompt_clone = prompt.to_string();
         let client = self.eve_client.clone();
 
-        let result: Result<String, String> = self.circuit_breaker.call(|| {
-            let client = client.clone();
-            let prompt = prompt_clone.clone();
-            Box::pin(async move {
-                let mut retry_ctx = RetryContext::new(RetryConfig::default());
-                retry_ctx.retry_async(|| {
-                    let client = client.clone();
-                    let prompt = prompt.clone();
-                    Box::pin(async move {
-                        let task = EveTask::new(&prompt).with_strategy(EveStrategy::Prototype);
-                        let result = client.execute_task_blocking(&task, 60).await?;
-                        Ok(result.code.unwrap_or_default())
-                    })
-                }).await
+        let result: Result<String, String> = self
+            .circuit_breaker
+            .call(|| {
+                let client = client.clone();
+                let prompt = prompt_clone.clone();
+                Box::pin(async move {
+                    let mut retry_ctx = RetryContext::new(RetryConfig::default());
+                    retry_ctx
+                        .retry_async(|| {
+                            let client = client.clone();
+                            let prompt = prompt.clone();
+                            Box::pin(async move {
+                                let task =
+                                    EveTask::new(&prompt).with_strategy(EveStrategy::Prototype);
+                                let result = client.execute_task_blocking(&task, 60).await?;
+                                Ok(result.code.unwrap_or_default())
+                            })
+                        })
+                        .await
+                })
             })
-        }).await;
+            .await;
 
         result.map_err(|e| format!("Falha na inferência após fallback e retries: {}", e))
     }
 
-    pub async fn reflect(&self, context: &EvolutionContext, resource: &dyn Resource) -> Result<Observation, String> {
-        info!("🔍 [SEPL] Refletindo sobre recurso: {}", context.resource_id);
+    pub async fn reflect(
+        &self,
+        context: &EvolutionContext,
+        resource: &dyn Resource,
+    ) -> Result<Observation, String> {
+        info!(
+            "🔍 [SEPL] Refletindo sobre recurso: {}",
+            context.resource_id
+        );
 
-        let metrics = self.thread_index.get_usage_metrics(&context.resource_id).await?;
+        let metrics = self
+            .thread_index
+            .get_usage_metrics(&context.resource_id)
+            .await?;
 
         let prompt = format!(
             "Analyze resource '{}' (version {}). Metrics: {:?}. Goal: {}. Produce structured observation.",
             context.resource_id, resource.metadata().version, metrics, context.goal
         );
 
-        let trace_id = self.trace_manager.start_trace(&context.resource_id).await.ok();
-        let response = self.infer_with_strategy(&prompt, trace_id.as_deref()).await?;
+        let trace_id = self
+            .trace_manager
+            .start_trace(&context.resource_id)
+            .await
+            .ok();
+        let response = self
+            .infer_with_strategy(&prompt, trace_id.as_deref())
+            .await?;
 
         Ok(Observation {
             resource_id: context.resource_id.clone(),
@@ -177,16 +203,29 @@ impl AutogenesisOperator {
         })
     }
 
-    pub async fn propose(&self, observation: &Observation, context: &EvolutionContext) -> Result<Proposal, String> {
-        info!("💡 [SEPL] Propondo evolução para: {}", observation.resource_id);
+    pub async fn propose(
+        &self,
+        observation: &Observation,
+        context: &EvolutionContext,
+    ) -> Result<Proposal, String> {
+        info!(
+            "💡 [SEPL] Propondo evolução para: {}",
+            observation.resource_id
+        );
 
         let prompt = format!(
             "Based on observation: {:?}, propose concrete changes with rationale and expected improvement.",
             observation
         );
 
-        let trace_id = self.trace_manager.start_trace(&context.resource_id).await.ok();
-        let _response = self.infer_with_strategy(&prompt, trace_id.as_deref()).await?;
+        let trace_id = self
+            .trace_manager
+            .start_trace(&context.resource_id)
+            .await
+            .ok();
+        let _response = self
+            .infer_with_strategy(&prompt, trace_id.as_deref())
+            .await?;
 
         Ok(Proposal {
             resource_id: observation.resource_id.clone(),
@@ -218,8 +257,10 @@ mod tests {
             trace_manager,
             "test_hash",
             qvac_config,
-            5
-        ).await.unwrap();
+            5,
+        )
+        .await
+        .unwrap();
 
         let res = operator.infer_with_strategy("test prompt", None).await;
         assert!(res.is_ok());
@@ -231,8 +272,10 @@ mod tests {
             Arc::new(TraceManager::new()),
             "test_hash",
             QVACConfig::default(),
-            5
-        ).await.unwrap();
+            5,
+        )
+        .await
+        .unwrap();
         operator.disable_qvac();
 
         let res = operator.infer_with_strategy("test prompt", None).await;

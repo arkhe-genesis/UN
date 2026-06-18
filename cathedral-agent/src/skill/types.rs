@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -61,7 +61,8 @@ impl Skill {
         let metadata = Self::parse_yaml(&frontmatter);
         let steps = Self::extract_steps(&body);
 
-        let name = metadata.get("name")
+        let name = metadata
+            .get("name")
             .cloned()
             .unwrap_or_else(|| source.to_string());
 
@@ -71,11 +72,13 @@ impl Skill {
             _ => SkillType::UserInvoked,
         };
 
-        let triggers = metadata.get("triggers")
+        let triggers = metadata
+            .get("triggers")
             .map(|s| s.split(',').map(|t| t.trim().to_string()).collect())
             .unwrap_or_default();
 
-        let dependencies = metadata.get("dependencies")
+        let dependencies = metadata
+            .get("dependencies")
             .map(|s| s.split(',').map(|t| t.trim().to_string()).collect())
             .unwrap_or_default();
 
@@ -83,13 +86,22 @@ impl Skill {
             name,
             description: metadata.get("description").cloned().unwrap_or_default(),
             skill_type,
-            version: metadata.get("version").cloned().unwrap_or_else(|| "1.0.0".to_string()),
+            version: metadata
+                .get("version")
+                .cloned()
+                .unwrap_or_else(|| "1.0.0".to_string()),
             author: metadata.get("author").cloned(),
-            tags: metadata.get("tags").map(|s| s.split(',').map(|t| t.trim().to_string()).collect()).unwrap_or_default(),
+            tags: metadata
+                .get("tags")
+                .map(|s| s.split(',').map(|t| t.trim().to_string()).collect())
+                .unwrap_or_default(),
             triggers,
             instructions: body,
             steps,
-            examples: metadata.get("examples").map(|s| s.split(',').map(|t| t.trim().to_string()).collect()).unwrap_or_default(),
+            examples: metadata
+                .get("examples")
+                .map(|s| s.split(',').map(|t| t.trim().to_string()).collect())
+                .unwrap_or_default(),
             dependencies,
             metadata,
             okf_bundle_id: None,
@@ -100,7 +112,9 @@ impl Skill {
 
     fn split_frontmatter(content: &str) -> Result<(String, String), String> {
         let lines: Vec<&str> = content.lines().collect();
-        if lines.is_empty() { return Ok((String::new(), String::new())); }
+        if lines.is_empty() {
+            return Ok((String::new(), String::new()));
+        }
         if lines[0].trim() != "---" {
             return Ok((String::new(), content.to_string()));
         }
@@ -109,16 +123,23 @@ impl Skill {
         let mut in_front = true;
         let mut found_end = false;
         for (i, line) in lines.iter().enumerate() {
-            if i == 0 { continue; }
+            if i == 0 {
+                continue;
+            }
             if in_front && line.trim() == "---" {
                 in_front = false;
                 found_end = true;
                 continue;
             }
-            if in_front { front.push(*line); }
-            else { body.push(*line); }
+            if in_front {
+                front.push(*line);
+            } else {
+                body.push(*line);
+            }
         }
-        if !found_end { return Err("Frontmatter não fechado".to_string()); }
+        if !found_end {
+            return Err("Frontmatter não fechado".to_string());
+        }
         Ok((front.join("\n"), body.join("\n")))
     }
 
@@ -137,8 +158,12 @@ impl Skill {
         let mut order = 0;
         for line in body.lines() {
             let trimmed = line.trim();
-            if trimmed.starts_with("1.") || trimmed.starts_with("2.") || trimmed.starts_with("- ") ||
-               trimmed.starts_with("**Step") || trimmed.starts_with("Step") {
+            if trimmed.starts_with("1.")
+                || trimmed.starts_with("2.")
+                || trimmed.starts_with("- ")
+                || trimmed.starts_with("**Step")
+                || trimmed.starts_with("Step")
+            {
                 let mut desc = trimmed;
                 if desc.starts_with("**Step") {
                     desc = desc.trim_start_matches("**Step");
@@ -146,7 +171,9 @@ impl Skill {
                     desc = desc.trim_start_matches("Step");
                 }
                 let description = desc
-                    .trim_start_matches(|c: char| c.is_ascii_digit() || c == '.' || c == '-' || c == ' ' || c == '*')
+                    .trim_start_matches(|c: char| {
+                        c.is_ascii_digit() || c == '.' || c == '-' || c == ' ' || c == '*'
+                    })
                     .trim()
                     .to_string();
                 if !description.is_empty() {
@@ -165,11 +192,9 @@ impl Skill {
 
     /// Converte a skill para SwarmSpec (para execução como enxame)
     pub fn to_swarm_spec(&self) -> crate::swarm::types::SwarmSpec {
-        use crate::swarm::types::{SwarmSpec, OutputSpec, ConflictResolution, StopCondition};
+        use crate::swarm::types::{ConflictResolution, OutputSpec, StopCondition, SwarmSpec};
 
-        let _steps_desc: Vec<String> = self.steps.iter()
-            .map(|s| s.description.clone())
-            .collect();
+        let _steps_desc: Vec<String> = self.steps.iter().map(|s| s.description.clone()).collect();
 
         SwarmSpec {
             project: format!("skill-{}", self.name),
