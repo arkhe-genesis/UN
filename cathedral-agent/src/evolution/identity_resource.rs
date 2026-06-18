@@ -1,90 +1,171 @@
-use crate::evolution::resource::{Resource, ResourceMetadata, ResourceInterface, ResourceState, ProvenanceEntry};
-use crate::evolution::desci_node_resource::{DeSciNodeResource};
-use serde::{Deserialize, Serialize};
+use crate::evolution::resource::{Resource, ResourceMetadata, ResourceInterface, ResourceState};
+use crate::evolution::wallet_resource::WalletResource;
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
+
+// ─── Tipos ──────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentityMetadata {
+    pub npub: String,
+    pub nsec: Option<String>,
+    pub display_name: Option<String>,
+    pub about: Option<String>,
+    pub avatar_hash: Option<String>,
+    pub email: Option<String>,
+    pub website: Option<String>,
+    pub created_at: u64,
+    pub updated_at: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizationPolicy {
+    pub name: String,
+    pub rules: Vec<AuthorizationRule>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizationRule {
+    pub action: AuthorizationAction,
+    pub resource_type: String,
+    pub conditions: Vec<Condition>,
+    pub effect: Effect,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum AuthorizationAction {
+    Read,
+    Write,
+    Execute,
+    Deploy,
+    Evolve,
+    Transfer,
+    All,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Condition {
+    AllowList(Vec<String>),
+    DenyList(Vec<String>),
+    Threshold { min_amount: String, max_amount: String },
+    TimeRange { start: u64, end: u64 },
+    Custom { key: String, value: serde_json::Value },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum Effect {
+    Allow,
+    Deny,
+    RequireApproval,
+}
+
+// ─── IdentityResource ─────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IdentityResource {
     pub metadata: ResourceMetadata,
-    pub npub: String,
-    pub name: String,
-    pub desci_profile: Option<DeSciProfile>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeSciProfile {
-    pub nodes: Vec<NodeReference>,
-    pub peer_reviews: Vec<PeerReview>,
-    pub funding_contributions: Vec<FundingContribution>,
-    pub reputation_score: DeSciReputation,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NodeReference {
-    pub dpid: String,
-    pub title: String,
-    pub version: String,
-    pub published_at: u64,
-    pub metadata: HashMap<String, String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PeerReview {
-    pub node_id: String,
-    pub score: u8,
-    pub comments: String,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FundingContribution {
-    pub node_id: String,
-    pub amount: f64,
-    pub currency: String,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeSciReputation {
-    pub publication_count: u32,
-    pub review_count: u32,
-    pub citation_count: u32,
-    pub overall_score: f64,
+    pub identity: IdentityMetadata,
+    pub wallets: Vec<WalletResource>,
+    pub policies: Vec<AuthorizationPolicy>,
+    pub trusted_agents: Vec<String>,
 }
 
 impl IdentityResource {
-    pub fn ensure_desci_profile(&mut self) {
-        if self.desci_profile.is_none() {
-            self.desci_profile = Some(DeSciProfile {
-                nodes: Vec::new(),
-                peer_reviews: Vec::new(),
-                funding_contributions: Vec::new(),
-                reputation_score: DeSciReputation {
-                    publication_count: 0,
-                    review_count: 0,
-                    citation_count: 0,
-                    overall_score: 0.0,
-                },
-            });
+    pub fn new(npub: &str, display_name: Option<&str>) -> Self {
+        let now = chrono::Utc::now().timestamp() as u64;
+        let interface = ResourceInterface {
+            input_schema: serde_json::json!({ "type": "object" }),
+            output_schema: serde_json::json!({ "type": "object" }),
+            side_effects: vec!["controls_identity".to_string()],
+            dependencies: Vec::new(),
+        };
+
+        Self {
+            metadata: ResourceMetadata {
+                id: format!("identity:{}", npub),
+                version: "1.0.0".to_string(),
+                state: ResourceState::Active,
+                interface,
+                created_at: now,
+                updated_at: now,
+                author: npub.to_string(),
+                provenance: Vec::new(),
+                tags: vec!["identity".to_string(), "sovereign".to_string()],
+                metadata: HashMap::new(),
+            },
+            identity: IdentityMetadata {
+                npub: npub.to_string(),
+                nsec: None,
+                display_name: display_name.map(|s| s.to_string()),
+                about: None,
+                avatar_hash: None,
+                email: None,
+                website: None,
+                created_at: now,
+                updated_at: now,
+            },
+            wallets: Vec::new(),
+            policies: vec![
+                AuthorizationPolicy {
+                    name: "default".to_string(),
+                    rules: vec![
+                        AuthorizationRule {
+                            action: AuthorizationAction::All,
+                            resource_type: "*".to_string(),
+                            conditions: Vec::new(),
+                            effect: Effect::Allow,
+                        }
+                    ],
+                }
+            ],
+            trusted_agents: Vec::new(),
         }
     }
 
-    pub fn add_desci_contribution(&mut self, node_ref: NodeReference, _role: &str) {
-        self.ensure_desci_profile();
-        if let Some(profile) = &mut self.desci_profile {
-            profile.nodes.push(node_ref);
-            profile.reputation_score.publication_count += 1;
+    pub fn add_wallet(&mut self, wallet: WalletResource) -> Result<(), String> {
+        if self.wallets.iter().any(|w| w.config.chain == wallet.config.chain) {
+            return Err(format!("Carteira para {} já existe", wallet.config.chain));
         }
+        self.wallets.push(wallet);
+        self.metadata.updated_at = chrono::Utc::now().timestamp() as u64;
+        Ok(())
+    }
+
+    pub fn get_wallet(&self, chain: &str) -> Option<&WalletResource> {
+        self.wallets.iter().find(|w| w.config.chain.to_string() == chain)
+    }
+
+    pub fn get_wallet_mut(&mut self, chain: &str) -> Option<&mut WalletResource> {
+        self.wallets.iter_mut().find(|w| w.config.chain.to_string() == chain)
+    }
+
+    pub fn add_policy(&mut self, policy: AuthorizationPolicy) {
+        self.policies.push(policy);
         self.metadata.updated_at = chrono::Utc::now().timestamp() as u64;
     }
 
-    pub fn add_peer_review(&mut self, review: PeerReview) {
-        self.ensure_desci_profile();
-        if let Some(profile) = &mut self.desci_profile {
-            profile.peer_reviews.push(review);
-            profile.reputation_score.review_count += 1;
+    pub fn authorize(&self, action: AuthorizationAction, resource_type: &str) -> Effect {
+        for policy in &self.policies {
+            for rule in &policy.rules {
+                if (rule.action == AuthorizationAction::All || rule.action == action)
+                    && (rule.resource_type == "*" || rule.resource_type == resource_type)
+                {
+                    return rule.effect.clone();
+                }
+            }
         }
-        self.metadata.updated_at = chrono::Utc::now().timestamp() as u64;
+        Effect::Deny
+    }
+
+    pub fn trust_agent(&mut self, npub: &str) {
+        if !self.trusted_agents.contains(&npub.to_string()) {
+            self.trusted_agents.push(npub.to_string());
+            self.metadata.updated_at = chrono::Utc::now().timestamp() as u64;
+        }
+    }
+
+    pub fn is_trusted(&self, npub: &str) -> bool {
+        self.trusted_agents.contains(&npub.to_string())
     }
 }
 
@@ -93,11 +174,9 @@ impl Resource for IdentityResource {
     fn metadata_mut(&mut self) -> &mut ResourceMetadata { &mut self.metadata }
     fn as_any(&self) -> &dyn std::any::Any { self }
     fn as_any_mut(&mut self) -> &mut dyn std::any::Any { self }
-
     fn to_bytes(&self) -> Result<Vec<u8>, String> {
         serde_json::to_vec(self).map_err(|e| format!("Erro ao serializar IdentityResource: {}", e))
     }
-
     fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
         serde_json::from_slice(bytes).map_err(|e| format!("Erro ao deserializar IdentityResource: {}", e))
     }
