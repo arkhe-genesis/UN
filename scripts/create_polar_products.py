@@ -18,8 +18,6 @@ import os
 import sys
 import json
 import argparse
-import hashlib
-import hmac
 from datetime import datetime, timezone
 
 try:

@@ -5,12 +5,10 @@
 
 use axum::{routing::get, Router};
 use metrics_exporter_prometheus::PrometheusBuilder;
-use std::net::SocketAddr;
 
 pub fn install_metrics_exporter(port: u16) -> anyhow::Result<()> {
-    let addr: SocketAddr = format!("0.0.0.0:{}", port).parse()?;
     let builder = PrometheusBuilder::new()
-        .with_http_listener(addr);
+        .with_http_listener(format!("0.0.0.0:{}", port).parse::<std::net::SocketAddr>().unwrap());
 
     builder.install()?;
 

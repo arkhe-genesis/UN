@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # --- Substrato 7001: x402 + Polar Webhooks (NOVO) ---
   cathedral-x402-polar:
     build:
       context: ./substrato-7001
@@ -36,31 +33,3 @@ services:
     restart: unless-stopped
     networks:
       - cathedral-network
-
-  # --- Prometheus scrape config (atualizar existing) ---
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - cathedral-network
-
-  cathedral-wormgraph:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: wormgraph
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d wormgraph"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - cathedral-network
-
-networks:
-  cathedral-network:
-    driver: bridge

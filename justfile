@@ -1,4 +1,4 @@
-# --- Polar Integration ---
+# --- Polar Integration (adicionar ao justfile existente) ---
 
 # Cria todos os produtos no Polar (dry run primeiro)
 polar-products-dry:

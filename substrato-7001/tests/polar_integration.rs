@@ -6,6 +6,7 @@
 use wiremock::{Mock, MockServer, ResponseTemplate};
 use wiremock::matchers::{method, path, header, body_json};
 use serde_json::json;
+use hmac::Mac;
 
 // ============================================================================
 // Test 1: Criação de produto
@@ -118,9 +119,7 @@ fn test_webhook_signature_polar_format() {
     let secret = "test_secret";
     let payload = b"test_payload";
 
-    use hmac::{Hmac, Mac};
-    use sha2::Sha256;
-    let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes()).unwrap();
+    let mut mac = hmac::Hmac::<sha2::Sha256>::new_from_slice(secret.as_bytes()).unwrap();
     mac.update(payload);
     let sig = hex::encode(mac.finalize().into_bytes());
 

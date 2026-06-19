@@ -34,7 +34,8 @@ type HmacSha256 = Hmac<Sha256>;
 // 1. DEAD LETTER QUEUE
 // ============================================================================
 
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct DeadLetterEvent {
     pub event_type: String,
     pub data: Value,
@@ -240,8 +241,7 @@ impl PolarWebhookHandler {
         }
 
         metrics::gauge!("polar_active_subscriptions").set(
-            match status { "active" => 1.0, _ => 0.0 }
-        );
+            match status { "active" => 1.0, _ => 0.0 });
         Ok(())
     }
 
@@ -410,11 +410,10 @@ impl OssDistributionEngine {
 // ============================================================================
 
 pub async fn webhook_handler(
-    State(state): State<AppState>,
+    State(handler): State<Arc<PolarWebhookHandler>>,
     headers: axum::http::HeaderMap,
     body: String,
 ) -> impl IntoResponse {
-    let handler = state.handler;
     // Verifica assinatura — Polar usa "Polar-Signature" (corrigido do v1)
     let signature = headers
         .get("polar-signature")
@@ -436,13 +435,14 @@ pub async fn webhook_handler(
 
     // Polar envia: { "type": "order.paid", "data": { ... } }
     // (não "event", mas "type" — corrigido do v1)
-    let event_type = payload["type"].as_str().unwrap_or("unknown").to_string();
+    let event_type = payload["type"].as_str().unwrap_or("unknown");
     let data = payload["data"].clone();
 
     // Processa de forma assíncrona (não bloqueia a resposta)
     let handler_clone = Arc::clone(&handler);
+    let event_type_owned = event_type.to_string();
     tokio::spawn(async move {
-        handler_clone.process_with_retry(&event_type, data).await;
+        handler_clone.process_with_retry(&event_type_owned, data).await;
     });
 
     // Responde 200 imediatamente (Polar recomenda resposta rápida)
@@ -451,9 +451,9 @@ pub async fn webhook_handler(
 
 /// Endpoint para inspect da DLQ
 pub async fn dlq_handler(
-    State(state): State<AppState>,
+    State(dlq): State<DeadLetterQueue>,
 ) -> impl IntoResponse {
-    let queue = state.dlq.read().await;
+    let queue = dlq.read().await;
     axum::Json(json!({
         "count": queue.len(),
         "events": queue.as_slice(),
@@ -470,20 +470,17 @@ pub async fn health_handler() -> impl IntoResponse {
     }))
 }
 
-#[derive(Clone)]
-pub struct AppState {
-    pub handler: Arc<PolarWebhookHandler>,
-    pub dlq: DeadLetterQueue,
-}
-
 pub fn create_webhook_router(
     handler: Arc<PolarWebhookHandler>,
     dlq: DeadLetterQueue,
 ) -> Router {
-    let state = AppState { handler, dlq };
+    let dlq_router = Router::new()
+        .route("/webhooks/polar/dlq", axum::routing::get(dlq_handler))
+        .with_state(dlq);
+
     Router::new()
         .route("/webhooks/polar", post(webhook_handler))
-        .route("/webhooks/polar/dlq", axum::routing::get(dlq_handler))
         .route("/health", axum::routing::get(health_handler))
-        .with_state(state)
+        .with_state(handler)
+        .merge(dlq_router)
 }
