@@ -1,0 +1,66 @@
+# alerts/expanded_alerts.yml
+# Regras de alerta expandidas para o MCP Server (Alertmanager)
+# Inclui regras para Segurança, Tokens e Backups
+#
+# Selo: CATHEDRAL-ARKHE-8000-EXPANDED-ALERTS-v1.0.0-2026-06-19
+
+groups:
+  - name: cathedral_security_alerts
+    interval: 30s
+    rules:
+      # ============================================================
+      # 1. Autenticações via Seal - Alta taxa de falha
+      # ============================================================
+      - alert: SealHighFailureRate
+        expr: >
+          rate(seal_auth_requests_total{status="failure"}[5m])
+          /
+          clamp_min(rate(seal_auth_requests_total[5m]), 1) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          component: seal-auth
+        annotations:
+          summary: "Alta taxa de falhas de autenticação no Seal (>10%)"
+          description: "A taxa de falhas de autenticação está em {{ $value | humanizePercentage }}."
+
+      # ============================================================
+      # 2. Tentativas de Acesso Negado (403/401)
+      # ============================================================
+      - alert: AccessDeniedSpike
+        expr: rate(security_access_denied_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Pico de Acesso Negado (403/401)"
+          description: "Foram detectadas {{ $value }} tentativas de acesso negado por minuto no componente {{ $labels.reason }}."
+
+      # ============================================================
+      # 3. Revogação de Tokens em Massa
+      # ============================================================
+      - alert: MassTokenRevocation
+        expr: increase(capability_tokens_revoked_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+          component: capability-tokens
+        annotations:
+          summary: "Revogação em massa de Capability Tokens"
+          description: "Foram revogados {{ $value }} tokens nos últimos 5 minutos."
+
+      # ============================================================
+      # 4. Falha de Backup (PostgreSQL/Redis)
+      # Nota: É preciso que o script exporte métricas ou o prometheus pushgateway seja usado,
+      # ou verificar ausência de sucesso. Aqui é um alerta baseado em log/job fail genérico.
+      # ============================================================
+      - alert: BackupFailure
+        expr: time() - backup_last_success_timestamp_seconds > 86400 * 2
+        for: 1h
+        labels:
+          severity: critical
+          component: backup
+        annotations:
+          summary: "Backup do WormGraph atrasado"
+          description: "O último backup com sucesso foi há mais de 48 horas."
