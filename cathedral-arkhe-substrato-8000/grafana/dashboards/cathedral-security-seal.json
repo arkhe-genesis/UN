@@ -1,0 +1,85 @@
+{
+  "dashboard": {
+    "title": "Cathedral ARKHE — Security, Capability Tokens & Seal",
+    "tags": ["cathedral", "security", "seal", "capability-tokens"],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "title": "Active Capability Tokens",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "sum(capability_tokens_active)",
+            "legendFormat": "Active Tokens"
+          }
+        ]
+      },
+      {
+        "title": "Seal Access Denials (last 1h)",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+        "targets": [
+          {
+            "expr": "increase(seal_access_denials_total[1h])",
+            "legendFormat": "Denials"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": 0 },
+                { "color": "orange", "value": 10 },
+                { "color": "red", "value": 50 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Token Revocations",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "targets": [
+          {
+            "expr": "rate(capability_tokens_revoked_total[5m])",
+            "legendFormat": "Revocations"
+          }
+        ]
+      },
+      {
+        "title": "Seal Validations vs Denials",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "rate(seal_access_grants_total[5m])",
+            "legendFormat": "Granted"
+          },
+          {
+            "expr": "rate(seal_access_denials_total[5m])",
+            "legendFormat": "Denied"
+          }
+        ]
+      },
+      {
+        "title": "Security Events (WormGraph)",
+        "type": "logs",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "sum by (event_type) (rate(wormgraph_security_events_total[5m]))",
+            "legendFormat": "{{event_type}}"
+          }
+        ]
+      }
+    ],
+    "time": { "from": "now-6h", "to": "now" }
+  },
+  "overwrite": true
+}
