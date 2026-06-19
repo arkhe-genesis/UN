@@ -13,8 +13,7 @@
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
-# Script de inicialização do MCP Server em Alpine Linux
-#
+
 # Selo: CATHEDRAL-ARKHE-8000-ALPINE-START-v2.1.0-2026-06-19
 
 set -e

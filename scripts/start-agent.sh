@@ -13,7 +13,6 @@
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
-# Inicializa o agente Cathedral em Tiny Core Linux
 
 AGENT_BIN="/opt/agent/bin/agent"
 CONFIG_DIR="/mnt/persist/config"
