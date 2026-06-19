@@ -172,3 +172,4 @@ pub mod attestation;
 pub mod identity_attestation;
 pub mod voice;
 pub mod private_bank;
+pub mod substrato_4004;
