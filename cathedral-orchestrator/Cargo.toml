@@ -20,3 +20,6 @@ opentelemetry = { version = "0.22", features = ["metrics", "trace"] }
 lazy_static = "1.4"
 prometheus = "0.13"
 axum = "0.7"
+ethers = { version = "2.0.14", features = ["abigen", "ws", "rustls"] }
+hex = "0.4.3"
+sha2 = "0.11.0"
