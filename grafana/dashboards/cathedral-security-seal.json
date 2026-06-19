@@ -1,0 +1,124 @@
+{
+  "dashboard": {
+    "title": "Cathedral ARKHE — Segurança, Seal & Capability Tokens",
+    "tags": ["cathedral", "security", "seal", "capability-tokens", "audit"],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Capability Tokens Emitidos (1h)",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "increase(capability_tokens_issued_total[1h])",
+            "legendFormat": "Total"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Autenticações via Seal (Sucesso vs Falha)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 6, "y": 0 },
+        "targets": [
+          {
+            "expr": "rate(seal_auth_requests_total{status=\"success\"}[5m])",
+            "legendFormat": "Sucesso"
+          },
+          {
+            "expr": "rate(seal_auth_requests_total{status=\"failure\"}[5m])",
+            "legendFormat": "Falha"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "fillOpacity": 10,
+              "lineWidth": 2
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Revogações de Tokens",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+        "targets": [
+          {
+            "expr": "increase(capability_tokens_revoked_total[1h])",
+            "legendFormat": "Revogações"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "red", "value": 1 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Tentativas de Acesso Negado (403/401)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "rate(security_access_denied_total[5m])",
+            "legendFormat": "{{reason}}"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Distribuição de Permissões/Capability Tokens Ativos",
+        "type": "piechart",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "capability_tokens_active_by_role",
+            "legendFormat": "{{role}}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Latência de Autenticação (Seal)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(seal_auth_duration_seconds_bucket[5m]))",
+            "legendFormat": "P95 Latency"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Incidentes de Segurança Relatados",
+        "type": "table",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+        "targets": [
+          {
+            "expr": "sum by (event_type, component) (increase(wormgraph_events_total{event_type=~\"security.*\"}[1h]))",
+            "format": "table"
+          }
+        ]
+      }
+    ],
+    "time": { "from": "now-6h", "to": "now" }
+  },
+  "overwrite": true
+}
