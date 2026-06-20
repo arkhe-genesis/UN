@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "cathedral-bridge",
+    "cathedral-sdk-rs",
+]
