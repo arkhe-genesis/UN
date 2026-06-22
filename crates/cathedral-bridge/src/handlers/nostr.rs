@@ -16,10 +16,15 @@ impl NostrHandler {
         request: Request<NostrPublishRequest>,
     ) -> Result<Response<NostrPublishResponse>, Status> {
         let req = request.into_inner();
-        info!("📡 PublishNostr: project={}, hash={}", req.project_id, req.design_hash);
+        info!(
+            "📡 PublishNostr: project={}, hash={}",
+            req.project_id, req.design_hash
+        );
 
         // 1. Verifica se o replicator está ativo
-        let replicator = state.nostr_replicator.as_ref()
+        let replicator = state
+            .nostr_replicator
+            .as_ref()
             .ok_or_else(|| Status::unavailable("Nostr replicator não configurado"))?;
 
         // 2. Constrói o evento Nostr (kind 30078)
@@ -36,9 +41,12 @@ impl NostrHandler {
         let event = nostr_sdk::EventBuilder::new(
             nostr_sdk::Kind::Custom(30078),
             req.wormgraph_json,
-            tags.into_iter().filter_map(|t| nostr_sdk::Tag::parse(t).ok()).collect::<Vec<_>>(),
+            tags.into_iter()
+                .filter_map(|t| nostr_sdk::Tag::parse(t).ok())
+                .collect::<Vec<_>>(),
         )
-        .to_event(&keys).map_err(|_| Status::internal("Falha ao criar evento"))?;
+        .to_event(&keys)
+        .map_err(|_| Status::internal("Falha ao criar evento"))?;
 
         // 3. Publica nos relays
         let relays = if req.relay_urls.is_empty() {
@@ -47,7 +55,9 @@ impl NostrHandler {
             req.relay_urls
         };
 
-        let published = replicator.publish_to_relays(&event, &relays).await
+        let published = replicator
+            .publish_to_relays(&event, &relays)
+            .await
             .map_err(|e| Status::internal(format!("Falha na publicação: {}", e)))?;
 
         info!("✅ Evento publicado: {}", published.event_id_hex);

@@ -8,10 +8,14 @@ impl NostrReplicator {
     pub fn default_relays(&self) -> &[String] {
         &[]
     }
-    pub async fn publish_to_relays(&self, _event: &nostr_sdk::Event, _relays: &[String]) -> Result<PublishedEvent, String> {
+    pub async fn publish_to_relays(
+        &self,
+        _event: &nostr_sdk::Event,
+        _relays: &[String],
+    ) -> Result<PublishedEvent, String> {
         Ok(PublishedEvent {
             event_id_hex: "".to_string(),
-            relay_urls: vec![]
+            relay_urls: vec![],
         })
     }
 }
