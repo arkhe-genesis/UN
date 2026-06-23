@@ -1,5 +1,5 @@
 [package]
-name = "cathedral-xtask"
+name = "cathedral-agent-security"
 version = "0.1.0"
 edition = "2024"
 

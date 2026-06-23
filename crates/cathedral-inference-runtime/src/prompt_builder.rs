@@ -1,10 +1,10 @@
-use cathedral_wormgraph::MemoryEntry;
+use cathedral_wormgraph::LedgerEntry;
 
 /// Constrói o prompt final com DID, memórias e instrução de thinking.
 pub fn build_prompt(
     prompt: &str,
     did: &str,
-    memories: &[MemoryEntry],
+    memories: &[LedgerEntry],
     verification_level: &str,
 ) -> String {
     let mut p = String::new();
@@ -18,7 +18,7 @@ pub fn build_prompt(
     if !memories.is_empty() {
         p.push_str("\n## Recent memories:\n");
         for mem in memories.iter().take(5) {
-            p.push_str(&format!("- {}\n", mem.content));
+            p.push_str(&format!("- {}\n", mem.rationale.clone().unwrap_or_default()));
         }
         p.push('\n');
     }

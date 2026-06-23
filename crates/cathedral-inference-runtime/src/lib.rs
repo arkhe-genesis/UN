@@ -48,7 +48,7 @@ impl CathedralRuntime {
         let core = Arc::new(CathedralCore::new().await);
         let identity = Arc::new(IdentityGateway::new());
         let signature_guard = Arc::new(SignatureGuard::new());
-        let wormgraph = Arc::new(WormGraphClient::new());
+        let wormgraph = Arc::new(WormGraphClient::new(cathedral_wormgraph::backends::JsonWormGraph::new()));
         let reputation = Arc::new(ReputationRouter::new());
         let zk = Arc::new(ZKGateway::new());
         let delegation = DelegationRouter::new();

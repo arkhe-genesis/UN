@@ -124,6 +124,11 @@ async fn main() {
         .route("/memory/{did}", get(memory_handler))
         .route("/memory/{did}/search", get(search_handler))
         .route("/status/{did}", get(status_handler))
+        .route("/proposals", post(cathedral_api::routes::proposals::create_proposal).get(cathedral_api::routes::proposals::list_proposals))
+        .route("/proposals/{id}", axum::routing::delete(cathedral_api::routes::proposals::delete_proposal))
+        .route("/health", get(cathedral_api::routes::health::health_check))
+        .route("/ws", get(cathedral_api::ws::ws_handler))
+        .layer(axum::middleware::from_fn(cathedral_api::middleware::auth::auth_middleware))
         .with_state(runtime);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
