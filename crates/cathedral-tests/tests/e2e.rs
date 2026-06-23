@@ -126,7 +126,7 @@ async fn test_search_similar() {
         .await
         .unwrap();
     assert!(!results.is_empty());
-    assert!(results.iter().any(|e| e.content.contains("café")));
+    assert!(results.iter().any(|e| e.rationale.clone().unwrap_or_default().contains("café")));
     println!("✅ Busca por similaridade passou");
 }
 

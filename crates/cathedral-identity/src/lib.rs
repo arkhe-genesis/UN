@@ -1,3 +1,4 @@
+pub mod pqc;
 use cathedral_arkheobex::{ArkheObject, HeaderType};
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use rand_core::OsRng;
@@ -27,7 +28,11 @@ impl Default for SignatureGuard {
 impl SignatureGuard {
     pub fn new() -> Self {
         let mut csprng = OsRng;
-        let signing_key = SigningKey::generate(&mut csprng);
+        let signing_key = SigningKey::from_bytes(&{
+                    let mut bytes = [0u8; 32];
+                    rand_core::RngCore::fill_bytes(&mut csprng, &mut bytes);
+                    bytes.into()
+                });
         let verifying_key = signing_key.verifying_key();
         Self {
             signing_key,

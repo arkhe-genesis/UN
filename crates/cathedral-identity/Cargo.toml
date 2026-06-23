@@ -2,21 +2,14 @@
 name = "cathedral-identity"
 version = "0.1.0"
 edition = "2024"
-authors.workspace = true
-license.workspace = true
-repository.workspace = true
+
+[features]
+mldsa = ["pqcrypto-dilithium", "pqcrypto-traits"]
 
 [dependencies]
-cathedral-arkheobex = { path = "../cathedral-arkheobex" }
-
-tokio.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-thiserror.workspace = true
-ed25519-dalek = { version = "2.1", features = ["rand_core"] }
-sha3.workspace = true
-hex.workspace = true
-bincode.workspace = true
-async-trait.workspace = true
-dashmap.workspace = true
+ed25519-dalek = { workspace = true }
 rand_core = { version = "0.6", features = ["std"] }
+thiserror = { workspace = true }
+cathedral-arkheobex = { path = "../cathedral-arkheobex" }
+pqcrypto-dilithium = { version = "0.4", optional = true }
+pqcrypto-traits = { version = "0.3", optional = true }

@@ -1,0 +1,14 @@
+[package]
+name = "cathedral-self-improve"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+cathedral-wormgraph = { path = "../cathedral-wormgraph" }
+syn = { version = "2.0", features = ["full", "visit", "extra-traits"] }
+walkdir = "2.5"
+quote = "1.0"

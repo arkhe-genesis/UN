@@ -1,3 +1,4 @@
+mod commands;
 use clap::{Parser, Subcommand};
 use reqwest::Client;
 use serde_json::json;
@@ -71,6 +72,8 @@ enum Commands {
         #[arg(short, long, default_value = "5")]
         limit: usize,
     },
+    Migrate(commands::migrate::MigrateArgs),
+    Sign(commands::sign::SignArgs),
 }
 
 #[tokio::main]
@@ -191,6 +194,12 @@ async fn main() {
                 .await
                 .unwrap();
             println!("{}", serde_json::to_string_pretty(&resp).unwrap());
+        }
+        Commands::Migrate(args) => {
+            let _ = commands::migrate::execute(args).await;
+        }
+        Commands::Sign(args) => {
+            let _ = commands::sign::execute(args).await;
         }
     }
 }

@@ -1,11 +1,6 @@
 [package]
 name = "cathedral-xtask"
-version = "1.0.0"
-edition = "2021"
-publish = false
+version = "0.1.0"
+edition = "2024"
 
 [dependencies]
-clap = { workspace = true }
-anyhow = { workspace = true }
-colored = "2.1"
-which = "6.0"
