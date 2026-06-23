@@ -1,0 +1,22 @@
+{
+  "name": "remix-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@remix-project/remix-solidity": "^0.5.77",
+    "@remix-project/remix-debug": "^0.5.91",
+    "@remix-project/remix-analyzer": "^0.5.100",
+    "@remix-project/engine": "^0.3.44",
+    "hono": "^4.0.0",
+    "@hono/node-server": "^1.0.0",
+    "ethers": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -12,7 +12,17 @@ members = [
     "crates/cathedral-cli",
     "crates/cathedral-benchmarks",
     "crates/cathedral-tests",
+    "crates/cathedral-remix-bridge",
+    "crates/cathedral-server",
+    "crates/cathedral-harness",
+    "crates/cathedral-orchestration",
+    "crates/cathedral-tools",
+    "crates/cathedral-permissions",
+    "crates/cathedral-self-improve",
+    "crates/cathedral-agents",
+    "crates/cathedral-skills"
 ]
+resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
