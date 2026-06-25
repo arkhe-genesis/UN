@@ -1,4 +1,3 @@
-use axum::Router;
 use std::sync::Arc;
 use cathedral_server::api;
 use cathedral_server::orchestration::orchestrator::Orchestrator;
@@ -12,7 +11,7 @@ async fn main() {
     println!("Cathedral Server starting...");
 
     let remix = Arc::new(RemixClient::new("http://localhost:3000".to_string()));
-    let wormgraph = Arc::new(WormGraphClient::new());
+    let wormgraph = Arc::new(WormGraphClient::new(cathedral_wormgraph::backends::json::JsonWormGraph::new()));
     let zk = Arc::new(ZKGateway::new());
 
     let orchestrator = Arc::new(Orchestrator::new(remix, wormgraph, zk));

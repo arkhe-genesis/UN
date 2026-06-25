@@ -63,3 +63,6 @@ impl CathedralModelInstance {
         Ok((response, thinking))
     }
 }
+pub mod model;
+
+pub use model::{LlamaEngine, ModelConfig};

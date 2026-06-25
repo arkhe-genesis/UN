@@ -104,6 +104,7 @@ rand = "0.8"
 candle-core = "0.7"
 candle-nn = "0.7"
 candle-transformers = "0.7"
+llama-cpp-2 = "0.1.150"
 
 [workspace.metadata.cathedral]
 model-tiers = ["pro", "plus", "standard", "lite"]
