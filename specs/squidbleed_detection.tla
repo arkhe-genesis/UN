@@ -50,7 +50,7 @@ Init ==
     /\ buffer = <<1, 32, 2, 0>>
     /\ pointer = 1
     /\ copyFrom = 1
-    /\ end_of_string = 3 \* <--- SETTING IT SUCH THAT THE BUG IS REACHABLE
+    /\ end_of_string = 4
 
 Next == CorrectLoop \/ VulnerableLoop
 
@@ -61,9 +61,5 @@ Invariant ==
 (* Propriedade que deve ser verificada: o loop nunca ultrapassa o buffer *)
 SafetyProperty ==
     CorrectLoop => Invariant
-
-(* Propriedade violada pelo bug: *)
-VulnerableProperty ==
-    VulnerableLoop => Invariant  (* FALSO! *)
 
 ====

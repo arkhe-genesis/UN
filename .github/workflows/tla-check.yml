@@ -26,3 +26,4 @@ jobs:
         run: |
           ./apalache/bin/apalache-mc typecheck specs/squidbleed_detection.tla
           ./apalache/bin/apalache-mc check --inv=Invariant specs/squidbleed_detection.tla
+          ./apalache/bin/apalache-mc check --inv=SafetyProperty specs/squidbleed_detection.tla
