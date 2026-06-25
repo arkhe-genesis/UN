@@ -1,0 +1,30 @@
+name: AI Security Audit
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Diariamente
+  push:
+    branches: [main]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: |
+          rustup default nightly-2026-06-15
+      - name: Run AI audit
+        run: |
+          cargo run --package arkhe-security-audit -- \
+            --model claude-sonnet-4 \
+            --endpoint \${{ secrets.LLM_ENDPOINT }} \
+            --api-key \${{ secrets.LLM_API_KEY }} \
+            --output findings.json
+      - name: Upload findings to WormGraph
+        run: arkhe-anchor --file findings.json --event-type SECURITY_AUDIT || true
+      - name: Alert if critical
+        if: contains(github.event_name, 'schedule')
+        run: |
+          if [ -s findings.json ]; then
+            echo "🔴 Critical vulnerabilities found!" | arkhe-notify --channel security-alerts || true
+          fi
