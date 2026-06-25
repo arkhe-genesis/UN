@@ -21,6 +21,7 @@ members = [
     "crates/cathedral-self-improve",
     "crates/cathedral-agents",
     "crates/cathedral-skills",
+    "cathedral-agent",
     "crates/arkhe-core",
     "crates/arkhe-forge",
     "crates/arkhe-agents",
