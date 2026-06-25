@@ -1,7 +1,7 @@
 use std::process::{Child, Command};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tracing::{info, error};
+use tracing::info;
 
 pub struct RemixRuntime {
     process: Arc<Mutex<Option<Child>>>,

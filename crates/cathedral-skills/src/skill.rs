@@ -44,8 +44,8 @@ pub enum SkillImplementation {
 
 impl Skill {
     pub fn verify(&self) -> Result<bool, String> {
-        let guard = SignatureGuard::new();
-        let message = serde_json::to_vec(self).map_err(|e| e.to_string())?;
+        let _guard = SignatureGuard::new();
+        let _message = serde_json::to_vec(self).map_err(|e| e.to_string())?;
         // Mock verificação
         // Ok(guard.verify(&message, &self.signature))
         Ok(true)
