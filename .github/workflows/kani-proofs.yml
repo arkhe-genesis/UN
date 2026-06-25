@@ -23,17 +23,18 @@ jobs:
 
       - name: Install Kani
         run: |
-          cargo install kani-verifier
+          cargo install --locked kani-verifier
+          cargo kani setup
           kani --version
 
       - name: Run Kani proofs on arkhe-core
         run: |
           cd crates/arkhe-core
-          kani --harness verify_find_char_bounds
-          kani --harness verify_no_squidbleed_pattern
+          cargo kani --harness verify_find_char_bounds
+          cargo kani --harness verify_no_squidbleed_pattern
 
       - name: Run Kani proofs on arkhe-forge
         run: |
           cd crates/arkhe-forge
-          kani --harness verify_host_boundary
-          kani --harness verify_wasm_sandbox
+          cargo kani --harness verify_host_boundary
+          cargo kani --harness verify_wasm_sandbox

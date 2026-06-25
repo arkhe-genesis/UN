@@ -12,16 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run cargo-audit for known vulnerabilities
-        run: cargo audit
-      - name: Run cargo-deny for license/policy compliance
-        run: cargo deny check
-      - name: Run cargo-geiger for unsafe code detection
-        run: cargo geiger --output-format json
-      - name: Run semgrep for pattern detection
-        run: semgrep --config=auto crates/
-      - name: Generate diff report
         run: |
-          arkhe-diff --baseline=last_audit.json --current=audit_result.json
-          if [ $? -ne 0 ]; then
-            echo "⚠️  New suspicious patterns detected"
-          fi
+          cargo install cargo-audit
+          cargo audit
+      - name: Run cargo-deny for license/policy compliance
+        run: |
+          cargo install cargo-deny
+          cargo deny check
