@@ -30,7 +30,7 @@ jobs:
       - name: Run Kani proofs on arkhe-core
         run: |
           cd crates/arkhe-core
-          cargo kani --harness verify_find_char_bounds
+          cargo kani --harness verify_find_char_raw_safety
           cargo kani --harness verify_no_squidbleed_pattern
 
       - name: Run Kani proofs on arkhe-forge
