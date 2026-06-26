@@ -3,13 +3,7 @@ node_modules/
 .next/
 dist/
 .turbo/
-cathedral-os/target/
-cathedral-os/node_modules/
-cathedral-os/apps/web/.next
-cathedral-os/apps/web/node_modules
-cathedral-os/packages/*/node_modules
-cathedral-os/marketplace/*/node_modules
-cathedral-os/runtimes/*/node_modules
-cathedral-os/tests/*/node_modules
-cathedral-os/apps/native/node_modules
-cathedral-os/apps/mobile/node_modules
+build/
+.gradle/
+cathedral-os/
+.gradle/
