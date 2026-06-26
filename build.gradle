@@ -176,7 +176,7 @@ configure(allprojects - project(':platform')) {
       content { includeGroupByRegex('tech\\.pegasys(\\..*)?') }
     }
     maven {
-      url = 'https://splunk.jfrog.io/splunk/ext-releases-local'
+      url = 'https://splunk.jfrog.io/artifactory/ext-releases-local'
       content { includeGroupByRegex('com\\.splunk\\..*') }
     }
 
