@@ -1,9 +1,24 @@
 target/
 node_modules/
-.next/
-dist/
-.turbo/
-build/
-.gradle/
-cathedral-os/
-.gradle/
+test_env/
+
+# Cathedral generated test artifacts and DB files
+Cathedral/zvec_data/episodic_index.bin
+Cathedral/zvec_data/episodic_meta.json
+Cathedral/zvec_data/bench_temp/
+Cathedral/zvec_data/hnsw_fallback/episodic_index.bin
+Cathedral/zvec_data/hnsw_fallback/episodic_meta.json
+Cathedral/nexrl_data/
+
+# Downloaded models
+yolov8n.pt
+*.pt
+
+# Cathedral specific files generated during tests
+Cathedral/nexrl_data/
+Cathedral/zvec_data/
+Cathedral/logs/
+cathedral_memory.db
+_apalache-out/
+apalache/
+apalache.zip

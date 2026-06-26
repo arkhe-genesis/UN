@@ -1,0 +1,18 @@
+[package]
+name = "arkhe-nexus-governance"
+version = "0.1.0"
+edition = "2021"
+authors = ["Arkhe Research Group orcid:0009-0005-2697-4668"]
+description = "Bridge between GovernanceGuard and NEXUS/Safe Core"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+arkhe-governance = { path = "../arkhe-governance" }
+arkhe-core = { path = "../arkhe-core" }
+thiserror = "1.0"
+chrono = "0.4"
+tracing = "0.1"
+hex = "0.4"
+
+[dev-dependencies]
+tokio-test = "0.4"
