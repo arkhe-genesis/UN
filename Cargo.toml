@@ -29,7 +29,10 @@ members = [
     "crates/arkhe-metacognition",
     "crates/arkhe-bridge",
     "crates/arkhe-security-audit",
-    "crates/arkhe-kernel"
+    "crates/arkhe-kernel",
+    "crates/arkhe-parsing",
+    "crates/arkhe-governance",
+    "crates/arkhe-nexus-governance"
 ]
 resolver = "2"
 
