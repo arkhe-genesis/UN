@@ -1,0 +1,9 @@
+[package]
+name = "safe-core-interface"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+safe-core-consensus = { path = "../safe-core-consensus" }
+safe-core-policy = { path = "../safe-core-policy" }
+safe-core-memory = { path = "../safe-core-memory" }
