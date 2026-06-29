@@ -1,8 +1,0 @@
-[package]
-name = "safe-core-a2a"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-safe-core-policy = { path = "../safe-core-policy" }
-safe-core-interface = { path = "../safe-core-interface" }

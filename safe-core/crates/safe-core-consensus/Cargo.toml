@@ -1,8 +1,0 @@
-[package]
-name = "safe-core-consensus"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-safe-core-crypto = { path = "../safe-core-crypto" }
-safe-core-policy = { path = "../safe-core-policy" }

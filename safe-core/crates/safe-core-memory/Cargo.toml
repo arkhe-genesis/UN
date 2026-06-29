@@ -1,8 +1,0 @@
-[package]
-name = "safe-core-memory"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-safe-core-crypto = { path = "../safe-core-crypto" }
-safe-core-did = { path = "../safe-core-did" }
