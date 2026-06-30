@@ -1,0 +1,28 @@
+[package]
+name = "safe-core-reactive-governance"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+safe-core-dyn-signature = { path = "../dyn-signature" }
+safe-core-hash-blake3 = { path = "../hash-blake3" }
+safe-core-hw-yubihsm = { path = "../hw-yubihsm", optional = true }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+chrono = { version = "0.4", features = ["clock"] }
+tokio = { version = "1.43", features = ["full"] }
+prometheus = { version = "0.13", optional = true }
+metrics = "0.23"
+hex = "0.4"
+async-trait = "0.1"
+
+[dev-dependencies]
+tempfile = "3.14"
+rand = "0.8"
+
+[features]
+default = ["watchdog"]
+watchdog = ["dep:prometheus"]

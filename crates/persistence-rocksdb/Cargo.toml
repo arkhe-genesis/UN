@@ -1,0 +1,10 @@
+[package]
+name = "safe-core-persistence-rocksdb"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+
+[dependencies]
+thiserror = "1.0"
