@@ -33,14 +33,8 @@ members = [
     "crates/arkhe-parsing",
     "crates/arkhe-governance",
     "crates/arkhe-nexus-governance",
-    "crates/dyn-signature",
-    "crates/hash-blake3",
-    "crates/hw-yubihsm",
-    "crates/merkle-evaluation",
-    "crates/persistence-rocksdb",
-    "crates/tpm-bridge",
-    "crates/safe-core-reactive-governance",
-
+    "crates/safe-core-parallax-bridge",
+    "crates/safe-core-model-runtime"
 ]
 resolver = "2"
 
