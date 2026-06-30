@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ##
 ## Copyright contributors to Besu.
 ##
@@ -13,7 +13,6 @@
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
-
 # Selo: CATHEDRAL-ARKHE-8000-ALPINE-START-v2.1.0-2026-06-19
 
 set -e

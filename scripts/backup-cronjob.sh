@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ##
 ## Copyright contributors to Besu.
 ##
@@ -13,7 +13,6 @@
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
-
 # scripts/backup-cronjob.sh
 # Script de backup automatizado para PostgreSQL e Redis na Cathedral ARKHE
 # Pode ser configurado em um cronjob (ex: 0 2 * * * /caminho/para/backup-cronjob.sh)

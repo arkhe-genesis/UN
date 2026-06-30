@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ##
 ## Copyright contributors to Besu.
 ##
@@ -13,7 +13,6 @@
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
-
 status=0
 while IFS= read -r -a line; do
   my_array+=( "$line" )

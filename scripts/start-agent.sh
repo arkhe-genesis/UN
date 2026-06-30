@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ##
 ## Copyright contributors to Besu.
 ##
@@ -13,7 +13,6 @@
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
-
 AGENT_BIN="/opt/agent/bin/agent"
 CONFIG_DIR="/mnt/persist/config"
 DATA_DIR="/mnt/persist/data"
