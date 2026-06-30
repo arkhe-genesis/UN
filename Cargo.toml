@@ -32,7 +32,9 @@ members = [
     "crates/arkhe-kernel",
     "crates/arkhe-parsing",
     "crates/arkhe-governance",
-    "crates/arkhe-nexus-governance"
+    "crates/arkhe-nexus-governance",
+    "crates/safe-core-parallax-bridge",
+    "crates/safe-core-model-runtime"
 ]
 resolver = "2"
 
