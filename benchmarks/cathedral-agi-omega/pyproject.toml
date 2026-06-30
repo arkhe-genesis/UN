@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cathedral-agi-omega"
+version = "1.0.0"
+description = "Cathedral AGI Omega - Secure Autonomous Artificial General Intelligence"
+authors = [
+  { name = "Cathedral Architect" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "blst-py",
+    "substrate-interface",
+    "py_ecc",
+    "web3",
+    "neo4j",
+    "torch",
+    "ezkl",
+    "pydantic",
+    "numpy",
+    "langgraph",
+    "secretflow",
+    "prometheus_client",
+    "scipy",
+    "scikit-learn"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "flake8"
+]
+
+[project.scripts]
+cathedral-agi = "cathedral_agi_omega.main:main"

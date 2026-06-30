@@ -1,0 +1,17 @@
+[package]
+name = "cathedral-cli"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+mldsa = ["cathedral-identity/mldsa"]
+
+[dependencies]
+clap = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true }
+hex = { workspace = true }
+cathedral-identity = { path = "../cathedral-identity" }
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "postgres", "migrate"] }
+rand_core = { version = "0.6", features = ["std"] }

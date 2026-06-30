@@ -1,0 +1,10 @@
+[package]
+name = "orchestrator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.0", features = ["full"] }
+cathedral-orchestrator = { path = "../../../cathedral-orchestrator" }
+async-trait = "0.1"
+chrono = "0.4"

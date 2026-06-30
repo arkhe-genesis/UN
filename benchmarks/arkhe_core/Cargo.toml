@@ -1,0 +1,7 @@
+[package]
+name = "arkhe-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# We remove the path dependency on arkhe-cognitive workspace to allow standalone compilation for checking

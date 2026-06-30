@@ -1,0 +1,40 @@
+[package]
+name = "wormgraph"
+version = "5.2.0"
+edition = "2021"
+description = "Substrato 989.y - WormGraph Core v5.2.0"
+authors = ["ORCID 0009-0005-2697-4668"]
+
+[dependencies]
+libm = "0.2"
+sha3 = { version = "0.10", default-features = false }
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+log = "0.4"
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
+tokio = { version = "1", features = ["time", "sync", "macros"], optional = true }
+
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+
+pyo3 = { version = "0.21", optional = true, features = ["extension-module"] }
+
+[dev-dependencies]
+criterion = "0.5"
+rand = "0.8"
+
+[features]
+default = []
+std = ["serde_json/std", "hex/std"]
+wasm = ["wasm-bindgen", "js-sys", "serde-wasm-bindgen"]
+pyo3 = ["dep:pyo3"]
+ffi = []
+
+[lib]
+name = "wormgraph"
+path = "src/lib.rs"
+
+[[bench]]
+name = "wormgraph_benchmark"
+harness = false

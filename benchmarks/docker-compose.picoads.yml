@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  picoads-backend:
+    build:
+      context: ./picoads_backend
+      dockerfile: Dockerfile
+    container_name: picoads-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PICOADS_API_KEY=${PICOADS_API_KEY:-pico_mock_key}
+    volumes:
+      - ./picoads_backend:/app
+    restart: unless-stopped
+    networks:
+      - cathedral-net
+
+  cathedral-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.cathedral
+    container_name: cathedral-agent
+    depends_on:
+      - picoads-backend
+    environment:
+      - PICOADS_BASE_URL=http://picoads-backend:8000
+      - PICOADS_API_KEY=${PICOADS_API_KEY:-pico_mock_key}
+      - GPU_ENABLED=${GPU_ENABLED:-false}
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    networks:
+      - cathedral-net
+    profiles:
+      - full
+
+networks:
+  cathedral-net:
+    driver: bridge

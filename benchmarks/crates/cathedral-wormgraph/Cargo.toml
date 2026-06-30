@@ -1,0 +1,25 @@
+[package]
+name = "cathedral-wormgraph"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+sha3 = { workspace = true }
+dashmap = { workspace = true }
+thiserror = { workspace = true }
+dirs = { workspace = true }
+async-trait = { workspace = true }
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "postgres", "migrate"] }
+
+[[test]]
+name = "qdrant_integration"
+path = "tests/integration/qdrant_integration.rs"
+
+[dev-dependencies]
+qdrant-client = "1.10.1"
+testcontainers = "0.27.3"
+tokio = { workspace = true, features = ["full"] }

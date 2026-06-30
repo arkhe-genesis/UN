@@ -1,0 +1,23 @@
+# Dockerfile.agi-tiny
+# Imagem baseada em Tiny Core Linux para agentes de IA
+# Tamanho estimado: ~50 MB (com Rust runtime + dependências mínimas)
+
+FROM scratch AS base
+# Rootfs Tiny Core pré-construído
+COPY rootfs/ /
+
+FROM alpine:3.20 AS builder
+RUN apk add --no-cache rust cargo musl-dev openssl-dev
+WORKDIR /app
+COPY agent/ .
+RUN cargo build --release --target x86_64-unknown-linux-musl
+
+FROM base
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/agent /opt/agent/bin/
+COPY scripts/start-agent.sh /opt/agent/bin/
+COPY config/agent.toml.default /opt/agent/config/agent.toml.default
+RUN chmod +x /opt/agent/bin/start-agent.sh
+
+EXPOSE 8787 8788
+ENTRYPOINT ["/opt/agent/bin/start-agent.sh"]
+CMD ["start"]

@@ -1,0 +1,15 @@
+[package]
+name = "cathedral-identity"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+mldsa = ["pqcrypto-dilithium", "pqcrypto-traits"]
+
+[dependencies]
+ed25519-dalek = { workspace = true }
+rand_core = { version = "0.6", features = ["std"] }
+thiserror = { workspace = true }
+cathedral-arkheobex = { path = "../cathedral-arkheobex" }
+pqcrypto-dilithium = { version = "0.4", optional = true }
+pqcrypto-traits = { version = "0.3", optional = true }

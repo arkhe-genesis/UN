@@ -1,0 +1,20 @@
+[package]
+name = "cathedral-bridge"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tonic = "0.12"
+prost = "0.13"
+prost-types = "0.13"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+anyhow = "1"
+chrono = "0.4.45"
+cathedral-sdk-rs = { path = "../cathedral-sdk-rs" }
+common = { path = "../../common" }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+blake3 = "1.5"
+
+[build-dependencies]
+tonic-build = "0.12"

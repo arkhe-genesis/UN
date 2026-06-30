@@ -1,0 +1,6 @@
+version: '3.8'
+
+services:
+  omnipresence:
+    image: alpine
+    command: echo "Omnipresence POC"

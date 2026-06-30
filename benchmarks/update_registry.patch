@@ -1,0 +1,34 @@
+--- cathedral-agent/src/evolution/registry.rs
++++ cathedral-agent/src/evolution/registry.rs
+@@ -1,6 +1,7 @@
+ use crate::evolution::resource::Resource;
+ use crate::evolution::wallet_resource::WalletResource;
+ use crate::evolution::identity_resource::IdentityResource;
++use crate::evolution::secret_resource::SecretResource;
+ use std::collections::HashMap;
+
+ pub struct ResourceRegistry {
+@@ -58,4 +59,19 @@
+             None => Ok(None),
+         }
+     }
++
++    pub async fn register_secret(&mut self, secret: SecretResource) -> Result<(), String> {
++        let resource = Box::new(secret);
++        self.register(resource).await
++    }
++
++    pub async fn get_secret(&self, identity: &str) -> Result<Option<SecretResource>, String> {
++        let id = format!("secrets:{}", identity);
++        match self.get(&id).await? {
++            Some(res) => {
++                if let Some(secret) = res.as_any().downcast_ref::<SecretResource>() {
++                    Ok(Some(secret.clone()))
++                } else {
++                    Ok(None)
++                }
++            }
++            None => Ok(None),
++        }
++    }
+ }

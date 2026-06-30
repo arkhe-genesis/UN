@@ -1,0 +1,16 @@
+[package]
+name = "cathedral-llm-core"
+version = "0.1.0"
+edition = "2024"
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+llama-cpp-2.workspace = true
+tracing = { workspace = true }
+encoding_rs = "0.8"

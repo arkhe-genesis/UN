@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+    "firewall",
+    "memory",
+    "reflect",
+    "meta",
+    "constitution",
+    "wormgraph",
+    "aegis",
+    "aegis-plausible-reasoner",
+    "cathedral-core"
+]
+
+[workspace.dependencies]
+aegis-plausible-reasoner = { path = "aegis-plausible-reasoner" }

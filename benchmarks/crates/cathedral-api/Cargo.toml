@@ -1,0 +1,20 @@
+[package]
+name = "cathedral-api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = { workspace = true }
+axum = { workspace = true, features = ["ws"] }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+hex = { workspace = true }
+uuid = { workspace = true }
+cathedral-inference-runtime = { path = "../cathedral-inference-runtime" }
+cathedral-wormgraph = { path = "../cathedral-wormgraph" }
+cathedral-identity = { path = "../cathedral-identity" }
+cathedral-resilience = { path = "../cathedral-resilience" }
+tokio-tungstenite = { workspace = true }
