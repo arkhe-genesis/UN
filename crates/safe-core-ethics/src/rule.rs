@@ -1,0 +1,13 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Severity { Allow, RequireApproval, Block }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EthicsRule {
+    pub id: String,
+    pub action: String,
+    pub constraint: String,
+    pub severity: Severity,
+    pub enabled: bool,
+}
