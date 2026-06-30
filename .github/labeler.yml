@@ -1,0 +1,21 @@
+"size/XS":
+  - "size: <= 10"
+
+"size/S":
+  - "size: > 10"
+  - "size: <= 30"
+
+"size/M":
+  - "size: > 30"
+  - "size: <= 100"
+
+"size/L":
+  - "size: > 100"
+  - "size: <= 500"
+
+"size/XL":
+  - "size: > 500"
+  - "size: <= 1000"
+
+"size/XXL":
+  - "size: > 1000"

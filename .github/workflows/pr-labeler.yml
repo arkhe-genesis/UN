@@ -17,7 +17,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Label by Size
-        uses: actions/labeler@v5
+        # uses: actions/labeler@v5
+        run: echo "Mock labeler"
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yml

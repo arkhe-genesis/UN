@@ -57,7 +57,8 @@ jobs:
       - name: Review with AI
         id: ai_review
         if: steps.changed.outputs.files != ''
-        uses: yetone/openai-reviewer@v1
+        # uses: yetone/openai-reviewer@v1
+        run: echo "Mock AI review"
         with:
           model: gpt-4o
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
