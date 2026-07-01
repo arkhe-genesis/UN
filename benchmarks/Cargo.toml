@@ -23,6 +23,9 @@ members = [
     "crates/cathedral-skills",
     "cathedral-agent",
     "crates/arkhe-core",
+    "crates/arkhe-hash-blake3",
+    "crates/arkhe-oats",
+    "crates/arkhe-merkle",
     "crates/arkhe-forge",
     "crates/arkhe-agents",
     "crates/arkhe-llm",
@@ -45,7 +48,7 @@ members = [
     "crates/safe-core-bridge",
     "crates/safe-core-types",
     "crates/safe-core-lean4"
-]
+, "crates/arkhe-hash-blake3", "crates/arkhe-oats", "crates/arkhe-merkle"]
 resolver = "2"
 
 [workspace.package]
