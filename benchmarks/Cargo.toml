@@ -30,11 +30,21 @@ members = [
     "crates/arkhe-bridge",
     "crates/arkhe-security-audit",
     "crates/arkhe-kernel",
+    "crates/safe-core-ethics",
+    "crates/safe-core-persistence",
+    "crates/safe-core-verifier",
+    "crates/safe-core-audit",
+    "crates/safe-core-governance",
+    "crates/rmcp",
+    "crates/rmcp_macros",
     "crates/arkhe-parsing",
     "crates/arkhe-governance",
     "crates/arkhe-nexus-governance",
     "crates/safe-core-parallax-bridge",
-    "crates/safe-core-model-runtime"
+    "crates/safe-core-model-runtime",
+    "crates/safe-core-bridge",
+    "crates/safe-core-types",
+    "crates/safe-core-lean4"
 ]
 resolver = "2"
 
