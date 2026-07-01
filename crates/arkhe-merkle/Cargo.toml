@@ -1,0 +1,8 @@
+[package]
+name = "arkhe-merkle"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+arkhe-core = { path = "../arkhe-core" }
+blake3 = "1.5.0"
