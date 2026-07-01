@@ -1,52 +1,32 @@
-use crate::types::*;
+use crate::types::{State, Event, EvidenceID, ArtifactID, Payload, Hash, Evidence, Artifact, ClaimID, Claim, Belief, DecisionID, Decision};
 use crate::hash::Hasher;
 
-fn hex_encode(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{:02x}", b)).collect()
+#[derive(Debug)]
+pub enum TransitionError {
+    IdAlreadyExists,
+    ReferencedIdNotFound,
+    InvalidParentHash,
+    EmptyEvidences,
 }
 
-pub fn apply(state: State, event: &Event, hasher: &dyn Hasher) -> Result<State, TransitionError> {
+pub fn apply(state: State, event: &Event) -> Result<State, TransitionError> {
     match event {
-        Event::ArtifactAdded(id, p, m) => {
-            let mut s = state;
-            if s.artifacts.contains_key(id) { return Err(TransitionError::IdAlreadyExists); }
-            let hash = hex_encode(&hasher.hash(p.as_bytes()));
-            s.artifacts.insert(*id, Artifact { payload: p.clone(), metadata: m.clone(), hash });
-            Ok(s)
-        },
-        Event::EvidenceAdded(id, art_id, c, sig, ts, ph) => {
-            apply_evidence(state, *id, *art_id, c.clone(), sig.clone(), *ts, ph.clone(), hasher)
-        },
-        Event::ClaimAdded(id, p, evs) => {
-            let mut s = state;
-            if s.claims.contains_key(id) { return Err(TransitionError::IdAlreadyExists); }
-            if evs.is_empty() { return Err(TransitionError::ReferencedIdNotFound); }
-            for e in evs {
-                if !s.evidences.contains_key(e) { return Err(TransitionError::ReferencedIdNotFound); }
-            }
-            s.claims.insert(*id, Claim { proposition: p.clone(), evidence_ids: evs.clone() });
-            Ok(s)
-        },
-        Event::BeliefAdded(id, cid, conf, j) => {
-            let mut s = state;
-            if s.beliefs.contains_key(id) { return Err(TransitionError::IdAlreadyExists); }
-            if !s.claims.contains_key(cid) { return Err(TransitionError::ReferencedIdNotFound); }
-            s.beliefs.insert(*id, Belief { claim_id: *cid, confidence: *conf, justification: j.clone() });
-            Ok(s)
-        },
-        Event::DecisionAdded(id, g, bids, ts) => {
-            let mut s = state;
-            if s.decisions.contains_key(id) { return Err(TransitionError::IdAlreadyExists); }
-            for b in bids {
-                if !s.beliefs.contains_key(b) { return Err(TransitionError::ReferencedIdNotFound); }
-            }
-            s.decisions.insert(*id, Decision { goal: g.clone(), belief_ids: bids.clone(), timestamp: *ts });
-            Ok(s)
-        },
+        Event::ArtifactAdded(id, payload, metadata) => apply_artifact(state, *id, payload.clone(), metadata.clone(), &crate::hash::IdentityHasher),
+        Event::EvidenceAdded(id, art_id, content, signature, ts, parent_hash) => apply_evidence(state, *id, *art_id, content.clone(), signature.clone(), *ts, parent_hash.clone(), &crate::hash::IdentityHasher),
+        Event::ClaimAdded(id, prop, evs) => apply_claim(state, *id, prop.clone(), evs.clone()),
+        Event::BeliefAdded(id, cid, conf, just) => apply_belief(state, *id, *cid, *conf, just.clone()),
+        Event::DecisionAdded(id, goal, bids, ts) => apply_decision(state, *id, goal.clone(), bids.clone(), *ts),
     }
 }
 
-fn apply_evidence(mut state: State, id: EvidenceID, art_id: ArtifactID, c: Payload,
+pub fn apply_artifact(mut state: State, id: ArtifactID, payload: Payload, metadata: String, hasher: &dyn Hasher) -> Result<State, TransitionError> {
+    if state.artifacts.contains_key(&id) { return Err(TransitionError::IdAlreadyExists); }
+    let hash = format!("{:x?}", hasher.hash(payload.as_bytes()));
+    state.artifacts.insert(id, Artifact { payload, metadata, hash });
+    Ok(state)
+}
+
+pub fn apply_evidence(mut state: State, id: EvidenceID, art_id: ArtifactID, c: Payload,
                   sig: Hash, ts: u64, ph: Option<Hash>, hasher: &dyn Hasher)
                   -> Result<State, TransitionError> {
     if state.evidences.contains_key(&id) { return Err(TransitionError::IdAlreadyExists); }
@@ -60,12 +40,38 @@ fn apply_evidence(mut state: State, id: EvidenceID, art_id: ArtifactID, c: Paylo
     if !pre_hash_ok { return Err(TransitionError::InvalidParentHash); }
 
     let content_bytes = c.as_bytes();
-    let hash = hex_encode(&hasher.hash(content_bytes));  // ← Hasher abstrato
+    let hash = format!("{:x?}", hasher.hash(content_bytes));  // ← Hasher abstrato
 
     let ev = Evidence {
         artifact_id: art_id, content: c, signature: sig,
         timestamp: ts, parent_hash: ph, hash
     };
     state.evidences.insert(id, ev);
+    Ok(state)
+}
+
+pub fn apply_claim(mut state: State, id: ClaimID, proposition: String, evidence_ids: Vec<EvidenceID>) -> Result<State, TransitionError> {
+    if state.claims.contains_key(&id) { return Err(TransitionError::IdAlreadyExists); }
+    if evidence_ids.is_empty() { return Err(TransitionError::EmptyEvidences); }
+    for eid in &evidence_ids {
+        if !state.evidences.contains_key(eid) { return Err(TransitionError::ReferencedIdNotFound); }
+    }
+    state.claims.insert(id, Claim { proposition, evidence_ids });
+    Ok(state)
+}
+
+pub fn apply_belief(mut state: State, id: u64, claim_id: ClaimID, confidence: u8, justification: String) -> Result<State, TransitionError> {
+    if state.beliefs.contains_key(&id) { return Err(TransitionError::IdAlreadyExists); }
+    if !state.claims.contains_key(&claim_id) { return Err(TransitionError::ReferencedIdNotFound); }
+    state.beliefs.insert(id, Belief { claim_id, confidence, justification });
+    Ok(state)
+}
+
+pub fn apply_decision(mut state: State, id: DecisionID, goal: String, belief_ids: Vec<u64>, timestamp: u64) -> Result<State, TransitionError> {
+    if state.decisions.contains_key(&id) { return Err(TransitionError::IdAlreadyExists); }
+    for bid in &belief_ids {
+        if !state.beliefs.contains_key(bid) { return Err(TransitionError::ReferencedIdNotFound); }
+    }
+    state.decisions.insert(id, Decision { goal, belief_ids, timestamp });
     Ok(state)
 }

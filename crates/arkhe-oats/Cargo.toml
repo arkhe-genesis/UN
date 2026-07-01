@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 arkhe-core = { path = "../arkhe-core" }
-async-trait = "0.1"
+async-trait = "0.1.74"

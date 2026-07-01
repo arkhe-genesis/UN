@@ -1,4 +1,4 @@
-use arkhe_core::State;
+use arkhe_core::types::State;
 use crate::types::{EvaluationContext, PolicyDecision};
 use crate::error::OatsError;
 use async_trait::async_trait;

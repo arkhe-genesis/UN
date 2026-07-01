@@ -7,6 +7,14 @@ pub mod invariants;
 pub mod tests;
 
 pub mod string_safe;
+pub mod hash;
+pub mod types;
+pub mod delta;
+pub mod invariants;
+
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug)]
 pub struct ArkheError(pub String);
 impl std::fmt::Display for ArkheError {

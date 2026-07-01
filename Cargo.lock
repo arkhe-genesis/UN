@@ -168,6 +168,7 @@ dependencies = [
 name = "arkhe-merkle"
 version = "0.1.0"
 dependencies = [
+ "arkhe-core",
  "blake3",
 ]
 

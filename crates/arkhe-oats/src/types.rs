@@ -1,10 +1,7 @@
-use arkhe_core::types::BeliefID;
-
 pub struct EvaluationContext {
-    pub belief_ids: Vec<BeliefID>,
+    pub belief_ids: Vec<u64>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
 pub enum PolicyDecision {
     Allow,
     Deny { reason: String },

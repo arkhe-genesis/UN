@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 arkhe-core = { path = "../arkhe-core" }
-blake3 = "1.5"
+blake3 = "1.5.0"
