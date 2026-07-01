@@ -1,0 +1,309 @@
+roadmap:
+  version: "8.0"
+  updated: "2026-07-01"
+  horizon: "6 months"
+
+  phases:
+    phase_1_foundation:
+      name: "Foundation — Real Implementations"
+      duration: "Sprints 1-4 (4 weeks)"
+      goal: "Eliminar todos os placeholders; tudo compilável e testável"
+      status: IN_PROGRESS
+
+      epics:
+        - id: EPIC-101
+          name: "RAG Golden Path Real"
+          effort: "13 points"
+          depends_on: []
+          tasks:
+            - id: TASK-1011
+              name: "Implement QdrantConnector real"
+              effort: "3"
+              depends_on: []
+              invariant_coverage: ["OWASP-008", "MCP-001"]
+              acceptance_criteria:
+                - "Conexão real com Qdrant via HTTP API"
+                - "Health check retorna latency e index count"
+                - "Search com filtros funcionais"
+                - "Teste de integração com Qdrant docker"
+              done_when: "PR merged + CI green + integration test passing"
+
+            - id: TASK-1012
+              name: "Implement RegexPiiScanner"
+              effort: "2"
+              depends_on: []
+              invariant_coverage: ["OWASP-002", "NIST-006"]
+              acceptance_criteria:
+                - "Detecta: email, CPF, telefone, cartão, IP, prontuário"
+                - "5+ testes unitários com casos reais PT-BR"
+                - "Zero false negatives no golden set de PII"
+              done_when: "PR merged + 100% test pass"
+
+            - id: TASK-1013
+              name: "Implement RagScorecard com thresholds reais"
+              effort: "3"
+              depends_on: ["TASK-1011"]
+              invariant_coverage: ["NIST-001", "NIST-005"]
+              acceptance_criteria:
+                - "9 checks quantitativos definidos"
+                - "Composite score calculado com pesos"
+                - "is_golden() retorna true/false baseado em thresholds"
+                - "AggregatedMetrics com P50/P99"
+              done_when: "PR merged + unit tests + doc"
+
+            - id: TASK-1014
+              name: "End-to-end RAG pipeline integration"
+              effort: "5"
+              depends_on: ["TASK-1011", "TASK-1012", "TASK-1013"]
+              invariant_coverage: ["CNT-001", "CNT-002", "CNT-003", "OWASP-001", "OWASP-002", "OWASP-009", "OWASP-010", "TXN-001", "TXN-004"]
+              acceptance_criteria:
+                - "Pipeline completo: validate → scan → retrieve → rerank → synthesize → check"
+                - "Cada etapa com verificação de invariante"
+                - "Métricas coletadas automaticamente"
+                - "Scorecard evaluation ao final"
+                - "Circuit breaker em caso de falha"
+              done_when: "E2E test passing + demo gravada"
+
+        - id: EPIC-102
+          name: "Runbook Engine Operational"
+          effort: "13 points"
+          depends_on: []
+          tasks:
+            - id: TASK-1021
+              name: "Implement RunbookEngine core"
+              effort: "5"
+              depends_on: []
+              invariant_coverage: ["NIST-004", "MNG-001"]
+              acceptance_criteria:
+                - "Trigger runbook por invariante violada"
+                - "Cria incidente com ID, severity, phase"
+                - "Auto-mitigation para SEV-1 (circuit breaker)"
+                - "Escalation check com SLA tracking"
+              done_when: "PR merged + unit tests"
+
+            - id: TASK-1022
+              name: "Implement SlackNotifier real"
+              effort: "3"
+              depends_on: []
+              invariant_coverage: ["NIST-004", "MCP-006"]
+              acceptance_criteria:
+                - "Cria canal privado no Slack"
+                - "Envia mensagens formatadas"
+                - "Trata erros de API gracefully"
+                - "Teste com Slack sandbox"
+              done_when: "PR merged + integration test"
+
+            - id: TASK-1023
+              name: "Implement JiraConnector real"
+              effort: "3"
+              depends_on: []
+              invariant_coverage: ["NIST-004", "MNG-002"]
+              acceptance_criteria:
+                - "Cria ticket de incidente"
+                - "Busca incidentes abertos"
+                - "Adiciona comentários"
+                - "Transiciona status"
+              done_when: "PR merged + integration test"
+
+            - id: TASK-1024
+              name: "Wire runbooks to CI/CD"
+              effort: "2"
+              depends_on: ["TASK-1021", "TASK-1022", "TASK-1023"]
+              invariant_coverage: ["GOV-001", "MSR-001"]
+              acceptance_criteria:
+                - "invariant-gate.yml dispara runbook em falha"
+                - "Incident criado automaticamente no Slack + Jira"
+                - "Auto-correct.yml usa runbook context"
+              done_when: "End-to-end CI test"
+
+        - id: EPIC-103
+          name: "Metrics Collector Real"
+          effort: "8 points"
+          depends_on: []
+          tasks:
+            - id: TASK-1031
+              name: "Implement MetricsCollector with thresholds"
+              effort: "5"
+              depends_on: []
+              invariant_coverage: ["NIST-001", "NIST-002", "OWASP-010", "MSR-002"]
+              acceptance_criteria:
+                - "Record com tags e invariant_id"
+                - "7 thresholds padrão definidos"
+                - "Alert callback funcional"
+                - "Query com agregação (avg, p50, p95, p99)"
+              done_when: "PR merged + unit tests"
+
+            - id: TASK-1032
+              name: "Integrate metrics into all Golden Paths"
+              effort: "3"
+              depends_on: ["TASK-1031", "TASK-1014"]
+              invariant_coverage: ["MSR-001", "MSR-002"]
+              acceptance_criteria:
+                - "RAG path emite métricas em cada etapa"
+                - "Automation path emite métricas"
+                - "Guardrail path emite métricas"
+                - "Dashboard consome métricas via WebSocket"
+              done_when: "Metrics visible in dashboard"
+
+    phase_2_governance:
+      name: "Governance Operational"
+      duration: "Sprints 5-8 (4 weeks)"
+      goal: "Comitê operacional, scorecards enforcement, exception process"
+      depends_on: ["phase_1_foundation"]
+      status: PLANNED
+
+      epics:
+        - id: EPIC-201
+          name: "Committee Charter Implementation"
+          effort: "8 points"
+          depends_on: ["EPIC-102"]
+          tasks:
+            - id: TASK-2011
+              name: "Implement DR (Decision Request) workflow"
+              effort: "5"
+              depends_on: []
+              acceptance_criteria:
+                - "DR template preenchível via CLI"
+                - "Async review process com SLA tracking"
+                - "Voting record persistido"
+                - "Auto-approval por silence (48h)"
+              done_when: "First DR processed end-to-end"
+
+            - id: TASK-2012
+              name: "Implement Exception Request workflow"
+              effort: "3"
+              depends_on: ["TASK-2011"]
+              invariant_coverage: ["EU-001", "NIST-002"]
+              acceptance_criteria:
+                - "IER template com todos os campos obrigatórios"
+                - "Deadline tracking com auto-escalation"
+                - "Exception log imutável"
+              done_when: "First IER processed"
+
+        - id: EPIC-202
+          name: "Scorecard Enforcement in CI"
+          effort: "8 points"
+          depends_on: ["EPIC-101", "EPIC-103"]
+          tasks:
+            - id: TASK-2021
+              name: "CI gate: Golden Path must pass scorecard"
+              effort: "3"
+              depends_on: []
+              invariant_coverage: ["MSR-001"]
+              acceptance_criteria:
+                - "PR que degrada scorecard abaixo de Golden é bloqueado"
+                - "Report detalhado de qual check falhou"
+                - "Exception process integrado para bypass justificado"
+              done_when: "CI blocks non-golden PR"
+
+            - id: TASK-2022
+              name: "Scorecard trends dashboard"
+              effort: "5"
+              depends_on: ["TASK-2021"]
+              invariant_coverage: ["MSR-002"]
+              acceptance_criteria:
+                - "Gráfico de composite score por path (7d, 30d, 90d)"
+                - "Golden rate trend"
+                - "Per-check pass rate"
+                - "Alerta quando tendencia é degradação"
+              done_when: "Dashboard live in staging"
+
+    phase_3_scale:
+      name: "Scale — Production Readiness"
+      duration: "Sprints 9-16 (8 weeks)"
+      goal: "Produção com monitoring, canary, rollback automatizado"
+      depends_on: ["phase_2_governance"]
+      status: PLANNED
+
+      epics:
+        - id: EPIC-301
+          name: "Canary Deploy with Eval Gates"
+          effort: "21 points"
+          depends_on: ["EPIC-202"]
+          tasks:
+            - id: TASK-3011
+              name: "Canary deployment pipeline"
+              effort: "8"
+              depends_on: []
+              acceptance_criteria:
+                - "Deploy para 5% do tráfego primeiro"
+                - "Eval suite roda contra canary"
+                - "Auto-promote se scorecard Golden"
+                - "Auto-rollback se qualquer invariante CRITICAL violada"
+              done_when: "Canary pipeline tested in staging"
+
+            - id: TASK-3012
+              name: "Automated rollback with state restoration"
+              effort: "8"
+              depends_on: ["TASK-3011"]
+              invariant_coverage: ["TXN-005", "TXN-006"]
+              acceptance_criteria:
+                - "Rollback restaura estado anterior (TXN-005)"
+                - "Log de transações permite replay (TXN-006)"
+                - "Rollback completa em < 60s"
+              done_when: "Rollback drill successful"
+
+            - id: TASK-3013
+              name: "Production monitoring integration"
+              effort: "5"
+              depends_on: ["TASK-3011"]
+              invariant_coverage: ["MSR-002", "NIST-004"]
+              acceptance_criteria:
+                - "Métricas enviadas para Prometheus/Grafana"
+                - "Alertas configurados para todos os thresholds"
+                - "Incident auto-creation via PagerDuty"
+              done_when: "Monitoring live"
+
+        - id: EPIC-302
+          name: "EU AI Act Compliance Package"
+          effort: "13 points"
+          depends_on: ["EPIC-201"]
+          tasks:
+            - id: TASK-3021
+              name: "Auto-generate EU AI Act documentation"
+              effort: "5"
+              depends_on: []
+              invariant_coverage: ["EU-003", "EU-004"]
+              acceptance_criteria:
+                - "Documentação técnica gerada a partir dos invariants.yaml"
+                - "Logging imutável com timestamps (EU-004)"
+                - "Checklist de conformidade auto-avaliado"
+              done_when: "Documentation package reviewed by legal"
+
+            - id: TASK-3022
+              name: "Post-market monitoring dashboard"
+              effort: "5"
+              depends_on: ["TASK-3021"]
+              invariant_coverage: ["EU-010"]
+              acceptance_criteria:
+                - "Dashboard com métricas contínuas pós-deploy"
+                - "Relatórios periódicos gerados automaticamente"
+                - "Alerta para degradação de performance"
+              done_when: "Dashboard approved by compliance"
+
+            - id: TASK-3023
+              name: "EU database registration preparation"
+              effort: "3"
+              depends_on: ["TASK-3021"]
+              invariant_coverage: ["EU-009"]
+              acceptance_criteria:
+                - "Todos os campos do registration preenchidos"
+                - "Documentação de suporte gerada"
+                - "Review legal completo"
+              done_when: "Registration package ready"
+
+  dependency_graph:
+    EPIC-101: []
+    EPIC-102: []
+    EPIC-103: [EPIC-101]  # TASK-1032 depende de TASK-1014
+    EPIC-201: [EPIC-102]
+    EPIC-202: [EPIC-101, EPIC-103]
+    EPIC-301: [EPIC-202]
+    EPIC-302: [EPIC-201]
+
+  critical_path:
+    - "EPIC-101 (Sprint 1-2)"
+    - "EPIC-103 (Sprint 2-3, partial dep on EPIC-101)"
+    - "EPIC-202 (Sprint 5-6, dep on EPIC-101 + EPIC-103)"
+    - "EPIC-301 (Sprint 9-12, dep on EPIC-202)"
+    # Total critical path: 12 sprints (~6 meses)

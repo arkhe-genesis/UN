@@ -1,0 +1,162 @@
+committee_charter:
+  name: "ARKHE AGI Governance Committee"
+  short_name: "AGC"
+  version: "1.0.0"
+  effective_date: "2026-07-01"
+  review_cycle: "quarterly"
+
+  purpose: |
+    O AGC é o órgão de tomada de decisão final para todas as questões que
+    afetem a segurança, conformidade regulatória e operacionalidade dos
+    sistemas AGI da organização. O comitê NÃO é consultivo — suas decisões
+    são vinculantes e executáveis.
+
+  authority:
+    can_approve:
+      - "Deploy de modelos em produção (EU-007)"
+      - "Exceções temporárias a invariantes CRITICAL (com deadline de correção)"
+      - "Mudanças na taxonomia de invariantes"
+      - "Atualizações de runbooks operacionais"
+      - "Orçamento para ferramentas de segurança e compliance"
+    can_block:
+      - "Qualquer deploy que viole invariante CRITICAL sem approved exception"
+      - "Remoção ou enfraquecimento de mecanismos de containment"
+      - "Acesso de terceiros a dados de treinamento ou logs"
+    must_be_consulted:
+      - "Mudanças na arquitetura de camadas (layer boundaries)"
+      - "Integração com novos provedores de LLM (OWASP-003)"
+      - "Expansão para novas jurisdições regulatórias"
+
+  membership:
+    permanent_voting:
+      - role: "Chief Technology Officer"
+        title: "Co-Chair"
+        responsibilities: ["Decisão técnica final", "Aprovação de arquitetura"]
+        time_commitment: "4h/semana"
+      - role: "Chief Information Security Officer"
+        title: "Co-Chair"
+        responsibilities: ["Decisão de segurança final", "Aprovação de runbooks"]
+        time_commitment: "4h/semana"
+      - role: "Head of AI Engineering"
+        title: "Member"
+        responsibilities: ["Viabilidade técnica", "Impacto no roadmap"]
+        time_commitment: "3h/semana"
+      - role: "General Counsel / DPO"
+        title: "Member"
+        responsibilities: ["Conformidade legal", "EU AI Act", "LGPD"]
+        time_commitment: "2h/semana"
+      - role: "VP of Product"
+        title: "Member"
+        responsibilities: ["Impacto no usuário", "Trade-offs de UX"]
+        time_commitment: "2h/semana"
+
+    advisory_non_voting:
+      - role: "External AI Safety Researcher"
+        term: "12 months"
+        responsibilities: ["Revisão independente", "Benchmarking externo"]
+      - role: "Internal Audit Representative"
+        responsibilities: ["Conformidade de processos", "Relatórios de auditoria"]
+
+    quorum:
+      minimum_voting_members: 3
+      must_include: ["CTO or CISO", "General Counsel or DPO"]
+
+  decision_process:
+    decision_types:
+      standard:
+        description: "Decisões rotineiras dentro de políticas existentes"
+        process:
+          1: "Requester submite Decision Request (DR) via template"
+          2: "Secretário tria e atribui reviewer primário (48h SLA)"
+          3: "Reviewer posta análise no channel do comitê"
+          4: "Período de comentários: 48h (async)"
+          5: "Se nenhum objection: approved by silence (consentimento tácito)"
+          6: "Se objection: escalada para meeting"
+        max_turnaround: "5 business days"
+        can_be_delegated: true
+
+      significant:
+        description: "Mudanças que afetam múltiplos domínios ou thresholds"
+        process:
+          1: "DR com impacto analysis obrigatório"
+          2: "Review por 2+ voting members"
+          3: "Meeting presencial/vídeo obrigatório"
+          4: "Votação: majority dos presentes (mínimo quorum)"
+          5: "Dissenting opinions registradas no log"
+        max_turnaround: "10 business days"
+        can_be_delegated: false
+
+      emergency:
+        description: "Incident SEV-1 ou risco regulatório iminente"
+        process:
+          1: "Qualquer voting member pode convocar (slack/phone)"
+          2: "Respond em 30min (SLA)"
+          3: "Decisão por majority dos que responderam (mínimo 2)"
+          4: "Ratificação em próxima meeting padrão (72h)"
+        max_turnaround: "2 hours"
+
+    voting:
+      method: "majority"
+      tie_breaker: "CTO (technical) ou CISO (security), dependendo do domínio"
+      abstention: "conta como não-voto (não quebra quorum)"
+      conflict_of_interest: "declarar e abster-se; não conta para quorum"
+
+    decision_record:
+      format: "ADR (Architecture Decision Record) estendido"
+      required_fields:
+        - "DR-YYYY-NNN (id sequencial por ano)"
+        - "Context & Problem Statement"
+        - "Decision Options Considered (mínimo 2)"
+        - "Decision Rationale (por que esta opção)"
+        - "Invariant Impact Analysis (quais invariantes afetados)"
+        - "Compliance Impact (EU AI Act, NIST, OWASP)"
+        - "Voting Record (quem votou o quê)"
+        - "Dissenting Opinions"
+        - "Reversible? (one-way vs two-way door)"
+        - "Review Date (quando reavaliar)"
+      storage: "docs/governance/decisions/"
+      template: "docs/governance/templates/dr-template.md"
+
+  meeting_cadence:
+    standard:
+      frequency: "bi-weekly"
+      duration: "60 minutes"
+      format: "video call + async prep"
+      required_pre_read:
+        - "Open incidents summary (SEV-2+)"
+        - "Invariant status report (auto-generated)"
+        - "Pending DRs"
+        - "Compliance dashboard"
+
+    quarterly_review:
+      frequency: "quarterly"
+      duration: "120 minutes"
+      agenda:
+        - "Invariant taxonomy review (novos, removidos, alterados)"
+        - "Scorecard trends (Golden rate por path)"
+        - "Incident post-mortem trends"
+        - "Regulatory landscape update"
+        - "Roadmap alignment review"
+        - "Committee effectiveness self-assessment"
+      outputs:
+        - "Quarterly Governance Report (público interno)"
+        - "Updated risk register (MAP-001)"
+
+  exception_process:
+    name: "Invariante Exception Request (IER)"
+    when: "Quando é necessário violar temporariamente um invariante CRITICAL"
+    process:
+      1: "Requester preenche IER template (justificativa, impacto, mitigação, deadline)"
+      2: "Reviewer técnico valida viabilidade da mitigação"
+      3: "CISO ou CTO aprova (significant decision process)"
+      4: "Exception registrada no exception log com deadline"
+      5: "Auto-escalation se deadline expirar sem correção"
+    required_fields:
+      - "Invariant ID(s) afetados"
+      - "Justificativa de negócio"
+      - "Risco residual após mitigação"
+      - "Plano de correção com timeline"
+      - "Deadline máximo (nunca > 90 dias)"
+      - "Compensating controls"
+    max_duration: "90 days"
+    auto_escalation: "Notifica CISO + CTO + Legal se deadline em 48h sem PR aberto"

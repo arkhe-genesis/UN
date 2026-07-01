@@ -1,0 +1,21 @@
+--- crates/layer-2-golden-paths/asi-golden-paths/src/rag/path.rs
++++ crates/layer-2-golden-paths/asi-golden-paths/src/rag/path.rs
+@@ -211,8 +211,8 @@
+
+ #[async_trait::async_trait]
+ pub trait CitationExtractor: Send + Sync {
++    /// Returns (precision, recall)
+     async fn extract(&self, response: &str, sources: &[RetrievalResult]) -> (f64, f64);
+-    /// Returns (precision, recall)
+ }
+
+ #[async_trait::async_trait]
+@@ -320,7 +320,7 @@
+         let metrics = RagPathMetrics {
+             query_latency_ms: start.elapsed().as_secs_f64() * 1000.0,
+             retrieval_count: reranked.len(),
+-            rerank_score_threshold,
++            rerank_score_threshold: rerank_threshold,
+             grounding_score,
+             citation_precision,
+             citation_recall,

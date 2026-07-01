@@ -1,0 +1,23 @@
+--- crates/layer-3-agents/asi-mcp-connectors/src/qdrant.rs
++++ crates/layer-3-agents/asi-mcp-connectors/src/qdrant.rs
+@@ -99,7 +99,7 @@
+             .await
+             .map_err(|e| RagError::ConnectionFailed(e.to_string()))?;
+
+-        let results = search_response
++        let results: Vec<_> = search_response
+             .result
+             .unwrap_or_default()
+             .into_iter()
+--- crates/layer-3-agents/asi-mcp-connectors/src/jira.rs
++++ crates/layer-3-agents/asi-mcp-connectors/src/jira.rs
+@@ -184,8 +184,8 @@
+             jql,
+             max_results: 50,
+             fields: vec![
+-                "summary", "status", "issuetype", "priority",
+-                "description", "created", "updated", "assignee", "reporter",
++                "summary".to_string(), "status".to_string(), "issuetype".to_string(), "priority".to_string(),
++                "description".to_string(), "created".to_string(), "updated".to_string(), "assignee".to_string(), "reporter".to_string(),
+             ],
+         };

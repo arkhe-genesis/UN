@@ -1,0 +1,286 @@
+use async_trait::async_trait;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use tracing::{info, warn, instrument};
+use base64;
+
+#[derive(Debug, Clone)]
+pub struct JiraConnector {
+    client: Client,
+    base_url: String,
+    auth_header: String,
+}
+
+impl JiraConnector {
+    pub fn new(base_url: &str, email: &str, api_token: &str) -> Self {
+        let auth = format!("{}:{}", email, api_token);
+        use base64::{Engine as _, engine::general_purpose};
+        let encoded = general_purpose::STANDARD.encode(auth);
+
+        Self {
+            client: Client::builder()
+                .timeout(std::time::Duration::from_secs(30))
+                .build()
+                .expect("Jira client creation failed"),
+            base_url: base_url.trim_end_matches('/').to_string(),
+            auth_header: format!("Basic {}", encoded),
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct JiraSearchRequest {
+    jql: String,
+    max_results: u32,
+    fields: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct JiraSearchResponse {
+    issues: Vec<JiraIssue>,
+    total: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JiraIssue {
+    pub key: String,
+    pub fields: JiraFields,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JiraFields {
+    pub summary: String,
+    pub status: JiraStatus,
+    pub issuetype: JiraIssueType,
+    pub priority: Option<JiraPriority>,
+    pub description: Option<String>,
+    pub created: String,
+    pub updated: String,
+    pub assignee: Option<JiraUser>,
+    pub reporter: Option<JiraUser>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JiraStatus {
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JiraIssueType {
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JiraPriority {
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JiraUser {
+    pub displayName: String,
+    pub emailAddress: String,
+}
+
+#[async_trait]
+pub trait TicketSystem: Send + Sync {
+    async fn create_incident_ticket(
+        &self,
+        title: &str,
+        description: &str,
+        severity: &str,
+        labels: Vec<&str>,
+    ) -> Result<String, TicketError>;
+
+    async fn search_open_incidents(&self, project: &str) -> Result<Vec<JiraIssue>, TicketError>;
+
+    async fn transition_to(&self, issue_key: &str, transition_id: &str) -> Result<(), TicketError>;
+
+    async fn add_comment(&self, issue_key: &str, comment: &str) -> Result<(), TicketError>;
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum TicketError {
+    #[error("Jira API error: {status} — {body}")]
+    ApiError { status: u16, body: String },
+    #[error("Network error: {0}")]
+    Network(String),
+    #[error("Parse error: {0}")]
+    Parse(String),
+}
+
+#[async_trait]
+impl TicketSystem for JiraConnector {
+    #[instrument(skip(self), fields(title = %title))]
+    async fn create_incident_ticket(
+        &self,
+        title: &str,
+        description: &str,
+        severity: &str,
+        labels: Vec<&str>,
+    ) -> Result<String, TicketError> {
+        let url = format!("{}/rest/api/3/issue", self.base_url);
+
+        let body = serde_json::json!({
+            "fields": {
+                "project": { "key": "SEI" },
+                "summary": title,
+                "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [{
+                        "type": "paragraph",
+                        "content": [{ "type": "text", "text": description }]
+                    }]
+                },
+                "issuetype": { "name": "Incident" },
+                "priority": severity_to_jira_priority(severity),
+                "labels": labels,
+            }
+        });
+
+        let response = self.client
+            .post(&url)
+            .header("Authorization", &self.auth_header)
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| TicketError::Network(e.to_string()))?;
+
+        let status = response.status();
+        let response_text = response.text().await
+            .map_err(|e| TicketError::Parse(e.to_string()))?;
+
+        if !status.is_success() {
+            return Err(TicketError::ApiError {
+                status: status.as_u16(),
+                body: response_text,
+            });
+        }
+
+        let parsed: serde_json::Value = serde_json::from_str(&response_text)
+            .map_err(|e| TicketError::Parse(e.to_string()))?;
+
+        let key = parsed["key"]
+            .as_str()
+            .ok_or_else(|| TicketError::Parse("No issue key in response".to_string()))?
+            .to_string();
+
+        info!(issue_key = %key, "Incident ticket created in Jira");
+        Ok(key)
+    }
+
+    #[instrument(skip(self))]
+    async fn search_open_incidents(&self, project: &str) -> Result<Vec<JiraIssue>, TicketError> {
+        let url = format!("{}/rest/api/3/search", self.base_url);
+
+        let jql = format!(
+            "project = {} AND issuetype = Incident AND status NOT IN (Done, Closed) ORDER BY created DESC",
+            project
+        );
+
+        let body = JiraSearchRequest {
+            jql,
+            max_results: 50,
+            fields: vec![
+                "summary".to_string(), "status".to_string(), "issuetype".to_string(), "priority".to_string(),
+                "description".to_string(), "created".to_string(), "updated".to_string(), "assignee".to_string(), "reporter".to_string(),
+            ],
+        };
+
+        let response = self.client
+            .post(&url)
+            .header("Authorization", &self.auth_header)
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| TicketError::Network(e.to_string()))?;
+
+        let status = response.status();
+        let response_text = response.text().await
+            .map_err(|e| TicketError::Parse(e.to_string()))?;
+
+        if !status.is_success() {
+            return Err(TicketError::ApiError {
+                status: status.as_u16(),
+                body: response_text,
+            });
+        }
+
+        let parsed: JiraSearchResponse = serde_json::from_str(&response_text)
+            .map_err(|e| TicketError::Parse(e.to_string()))?;
+
+        info!(count = parsed.issues.len(), total = parsed.total, "Open incidents fetched");
+        Ok(parsed.issues)
+    }
+
+    #[instrument(skip(self), fields(issue_key = %issue_key))]
+    async fn transition_to(&self, issue_key: &str, transition_id: &str) -> Result<(), TicketError> {
+        let url = format!("{}/rest/api/3/issue/{}/transitions", self.base_url, issue_key);
+
+        let body = serde_json::json!({
+            "transition": { "id": transition_id }
+        });
+
+        let response = self.client
+            .post(&url)
+            .header("Authorization", &self.auth_header)
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| TicketError::Network(e.to_string()))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(TicketError::ApiError { status: status.as_u16(), body });
+        }
+
+        info!(transition_id = %transition_id, "Issue transitioned");
+        Ok(())
+    }
+
+    #[instrument(skip(self), fields(issue_key = %issue_key))]
+    async fn add_comment(&self, issue_key: &str, comment: &str) -> Result<(), TicketError> {
+        let url = format!("{}/rest/api/3/issue/{}/comment", self.base_url, issue_key);
+
+        let body = serde_json::json!({
+            "body": {
+                "type": "doc",
+                "version": 1,
+                "content": [{
+                    "type": "paragraph",
+                    "content": [{ "type": "text", "text": comment }]
+                }]
+            }
+        });
+
+        let response = self.client
+            .post(&url)
+            .header("Authorization", &self.auth_header)
+            .header("Content-Type", "application/json")
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| TicketError::Network(e.to_string()))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(TicketError::ApiError { status: status.as_u16(), body });
+        }
+
+        Ok(())
+    }
+}
+
+fn severity_to_jira_priority(severity: &str) -> serde_json::Value {
+    match severity {
+        "SEV-1" => serde_json::json!({ "name": "Highest" }),
+        "SEV-2" => serde_json::json!({ "name": "High" }),
+        "SEV-3" => serde_json::json!({ "name": "Medium" }),
+        _ => serde_json::json!({ "name": "Low" }),
+    }
+}

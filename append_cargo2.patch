@@ -1,0 +1,12 @@
+--- Cargo.toml
++++ Cargo.toml
+@@ -53,7 +53,9 @@
+     "crates/layer-1-governance/asi-governance",
+     "crates/layer-2-golden-paths/asi-golden-paths",
+     "crates/layer-3-agents/asi-evals",
+-    "crates/layer-3-agents/asi-mcp-connectors"
++    "crates/layer-3-agents/asi-mcp-connectors",
++    "crates/layer-0-invariants/arkhe-containment",
++    "crates/layer-0-invariants/arkhe-txn"
+ ]
+ resolver = "2"

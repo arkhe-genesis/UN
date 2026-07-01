@@ -1,0 +1,15 @@
+[package]
+name = "asi-golden-paths"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+async-trait = "0.1"
+thiserror = { workspace = true }
+chrono = { workspace = true }
+arkhe-containment = { path = "../../layer-0-invariants/arkhe-containment" }
+arkhe-txn = { path = "../../layer-0-invariants/arkhe-txn" }
