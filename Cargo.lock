@@ -120,6 +120,9 @@ version = "0.1.0"
 [[package]]
 name = "arkhe-core"
 version = "0.1.0"
+dependencies = [
+ "pretty_assertions",
+]
 
 [[package]]
 name = "arkhe-forge"
@@ -139,6 +142,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "arkhe-hash-blake3"
+version = "0.1.0"
+dependencies = [
+ "arkhe-core",
+ "blake3",
+]
+
+[[package]]
 name = "arkhe-kernel"
 version = "0.1.0"
 dependencies = [
@@ -151,6 +162,13 @@ version = "0.1.0"
 dependencies = [
  "arkhe-core",
  "async-trait",
+]
+
+[[package]]
+name = "arkhe-merkle"
+version = "0.1.0"
+dependencies = [
+ "blake3",
 ]
 
 [[package]]
@@ -168,6 +186,14 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio-test",
  "tracing",
+]
+
+[[package]]
+name = "arkhe-oats"
+version = "0.1.0"
+dependencies = [
+ "arkhe-core",
+ "async-trait",
 ]
 
 [[package]]
@@ -1449,6 +1475,12 @@ dependencies = [
  "derive_builder_core",
  "syn",
 ]
+
+[[package]]
+name = "diff"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
 
 [[package]]
 name = "digest"
@@ -3038,6 +3070,16 @@ name = "pqcrypto-traits"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94e851c7654eed9e68d7d27164c454961a616cf8c203d500607ef22c737b51bb"
+
+[[package]]
+name = "pretty_assertions"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ae130e2f271fbc2ac3a40fb1d07180839cdbbe443c7a27e1e3c13c5cac0116d"
+dependencies = [
+ "diff",
+ "yansi",
+]
 
 [[package]]
 name = "prettyplease"
@@ -5634,6 +5676,12 @@ dependencies = [
  "libc",
  "rustix 1.1.4",
 ]
+
+[[package]]
+name = "yansi"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
 name = "yoke"
