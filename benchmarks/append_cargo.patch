@@ -1,0 +1,15 @@
+--- Cargo.toml
++++ Cargo.toml
+@@ -48,7 +48,12 @@
+     "crates/safe-core-model-runtime",
+     "crates/safe-core-bridge",
+     "crates/safe-core-types",
+-    "crates/safe-core-lean4"
++    "crates/safe-core-lean4",
++    "crates/layer-0-invariants/arkhe-owasp-guardrails",
++    "crates/layer-1-governance/asi-governance",
++    "crates/layer-2-golden-paths/asi-golden-paths",
++    "crates/layer-3-agents/asi-evals",
++    "crates/layer-3-agents/asi-mcp-connectors"
+ ]
+ resolver = "2"

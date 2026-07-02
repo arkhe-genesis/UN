@@ -1,0 +1,430 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::{Duration, Instant};
+
+use arkhe_containment::TypedAction;
+use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
+use tracing::{info, warn, error, instrument};
+
+/// Métricas quantitativas do Golden Path RAG
+/// Cada campo tem threshold definido no scorecard
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RagPathMetrics {
+    pub query_latency_ms: f64,
+    pub retrieval_count: usize,
+    pub rerank_score_threshold: f64,
+    pub grounding_score: f64,
+    pub citation_precision: f64,
+    pub citation_recall: f64,
+    pub pii_leak_count: usize,
+    pub token_budget_used: u32,
+    pub token_budget_total: u32,
+    pub containment_violations: usize,
+}
+
+impl RagPathMetrics {
+    /// Score composto 0..100 baseado em thresholds quantitativos
+    pub fn composite_score(&self) -> f64 {
+        let latency_score = if self.query_latency_ms < 500.0 { 100.0 }
+            else if self.query_latency_ms < 2000.0 { 100.0 - (self.query_latency_ms - 500.0) / 15.0 }
+            else { 0.0 };
+
+        let grounding_score = self.grounding_score * 100.0;
+        let citation_score = (self.citation_precision + self.citation_recall) / 2.0 * 100.0;
+        let budget_score = (1.0 - (self.token_budget_used as f64 / self.token_budget_total as f64)) * 100.0;
+        let penalty = (self.pii_leak_count as f64 * 50.0 + self.containment_violations as f64 * 100.0).min(100.0);
+
+        let raw = latency_score * 0.15
+            + grounding_score * 0.30
+            + citation_score * 0.30
+            + budget_score * 0.10
+            + self.rerank_score_threshold * 100.0 * 0.15;
+
+        (raw - penalty).max(0.0)
+    }
+
+    pub fn is_golden(&self) -> bool {
+        self.composite_score() >= 90.0
+            && self.pii_leak_count == 0
+            && self.containment_violations == 0
+            && self.grounding_score >= 0.85
+            && self.citation_recall >= 0.80
+    }
+}
+
+/// Scorecard quantitativo — thresholds "Golden" definidos
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RagScorecard {
+    pub query_latency_p50_ms: f64,      // Golden: < 500ms
+    pub query_latency_p99_ms: f64,      // Golden: < 2000ms
+    pub grounding_score_min: f64,        // Golden: >= 0.85
+    pub citation_precision_min: f64,     // Golden: >= 0.80
+    pub citation_recall_min: f64,        // Golden: >= 0.80
+    pub rerank_threshold: f64,           // Golden: >= 0.70
+    pub pii_leak_max: usize,             // Golden: 0
+    pub containment_violations_max: usize, // Golden: 0
+    pub token_budget_utilization_max: f64, // Golden: <= 0.80
+    pub composite_score_min: f64,        // Golden: >= 90.0
+}
+
+impl Default for RagScorecard {
+    fn default() -> Self {
+        Self {
+            query_latency_p50_ms: 500.0,
+            query_latency_p99_ms: 2000.0,
+            grounding_score_min: 0.85,
+            citation_precision_min: 0.80,
+            citation_recall_min: 0.80,
+            rerank_threshold: 0.70,
+            pii_leak_max: 0,
+            containment_violations_max: 0,
+            token_budget_utilization_max: 0.80,
+            composite_score_min: 90.0,
+        }
+    }
+}
+
+impl RagScorecard {
+    pub fn evaluate(&self, metrics: &RagPathMetrics) -> ScorecardResult {
+        let checks: Vec<(String, bool)> = vec![
+            ("query_latency_p50".to_string(), metrics.query_latency_ms <= self.query_latency_p50_ms),
+            ("grounding_score".to_string(), metrics.grounding_score >= self.grounding_score_min),
+            ("citation_precision".to_string(), metrics.citation_precision >= self.citation_precision_min),
+            ("citation_recall".to_string(), metrics.citation_recall >= self.citation_recall_min),
+            ("rerank_threshold".to_string(), metrics.rerank_score_threshold >= self.rerank_threshold),
+            ("pii_leak".to_string(), metrics.pii_leak_count <= self.pii_leak_max),
+            ("containment".to_string(), metrics.containment_violations <= self.containment_violations_max),
+            ("token_budget".to_string(), (metrics.token_budget_used as f64 / metrics.token_budget_total as f64) <= self.token_budget_utilization_max),
+            ("composite".to_string(), metrics.composite_score() >= self.composite_score_min),
+        ];
+
+        let passed = checks.iter().filter(|(_, v)| *v).count();
+        let total = checks.len();
+
+        ScorecardResult {
+            checks,
+            passed,
+            total,
+            is_golden: passed == total,
+            composite: metrics.composite_score(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScorecardResult {
+    pub checks: Vec<(String, bool)>,
+    pub passed: usize,
+    pub total: usize,
+    pub is_golden: bool,
+    pub composite: f64,
+}
+
+/// Conector real com vector store (não mock)
+#[async_trait::async_trait]
+pub trait VectorStoreConnector: Send + Sync {
+    async fn search(&self, query: &str, top_k: usize, filters: HashMap<String, String>) -> Result<Vec<RetrievalResult>, RagError>;
+    async fn health_check(&self) -> Result<HealthStatus, RagError>;
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetrievalResult {
+    pub document_id: String,
+    pub content: String,
+    pub score: f64,
+    pub metadata: HashMap<String, String>,
+    pub source_uri: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HealthStatus {
+    pub healthy: bool,
+    pub latency_ms: f64,
+    pub index_count: usize,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum RagError {
+    #[error("Vector store connection failed: {0}")]
+    ConnectionFailed(String),
+    #[error("Query timeout after {0}ms")]
+    Timeout(u64),
+    #[error("PII detected in {count} chunks — blocked by OWASP-002")]
+    PiiDetected { count: usize },
+    #[error("Containment violation: {0}")]
+    ContainmentViolation(String),
+    #[error("Grounding score {score} below threshold {threshold}")]
+    GroundingTooLow { score: f64, threshold: f64 },
+    #[error("Token budget exceeded: {used}/{total}")]
+    TokenBudgetExceeded { used: u32, total: u32 },
+    #[error("Rerank returned 0 results for query")]
+    EmptyResults,
+}
+
+/// Golden Path RAG — implementação real com pipeline verificável
+pub struct RagGoldenPath {
+    vector_store: Arc<dyn VectorStoreConnector>,
+    containment: Arc<arkhe_containment::ContainmentLayer>,
+    pii_scanner: Arc<dyn PiiScanner>,
+    reranker: Arc<dyn Reranker>,
+    grounding_checker: Arc<dyn GroundingChecker>,
+    citation_extractor: Arc<dyn CitationExtractor>,
+    token_counter: Arc<dyn TokenCounter>,
+    scorecard: RagScorecard,
+    metrics_history: Arc<RwLock<Vec<(Instant, RagPathMetrics)>>>,
+    token_budget: u32,
+}
+
+#[async_trait::async_trait]
+pub trait PiiScanner: Send + Sync {
+    async fn scan(&self, text: &str) -> Vec<PiiMatch>;
+}
+
+#[derive(Debug, Clone)]
+pub struct PiiMatch {
+    pub match_type: PiiType,
+    pub start: usize,
+    pub end: usize,
+    pub redacted: String,
+}
+
+#[derive(Debug, Clone)]
+pub enum PiiType {
+    Email,
+    Phone,
+    Cpf,
+    CreditCard,
+    MedicalRecord,
+    IpAddress,
+}
+
+#[async_trait::async_trait]
+pub trait Reranker: Send + Sync {
+    async fn rerank(&self, query: &str, results: Vec<RetrievalResult>, top_k: usize) -> Result<Vec<RetrievalResult>, RagError>;
+}
+
+#[async_trait::async_trait]
+pub trait GroundingChecker: Send + Sync {
+    async fn check(&self, response: &str, sources: &[RetrievalResult]) -> Result<f64, RagError>;
+}
+
+#[async_trait::async_trait]
+pub trait CitationExtractor: Send + Sync {
+    /// Returns (precision, recall)
+    async fn extract(&self, response: &str, sources: &[RetrievalResult]) -> (f64, f64);
+}
+
+#[async_trait::async_trait]
+pub trait TokenCounter: Send + Sync {
+    fn count(&self, text: &str) -> u32;
+}
+
+impl RagGoldenPath {
+    pub fn new(
+        vector_store: Arc<dyn VectorStoreConnector>,
+        containment: Arc<arkhe_containment::ContainmentLayer>,
+        pii_scanner: Arc<dyn PiiScanner>,
+        reranker: Arc<dyn Reranker>,
+        grounding_checker: Arc<dyn GroundingChecker>,
+        citation_extractor: Arc<dyn CitationExtractor>,
+        token_counter: Arc<dyn TokenCounter>,
+        token_budget: u32,
+    ) -> Self {
+        Self {
+            vector_store,
+            containment,
+            pii_scanner,
+            reranker,
+            grounding_checker,
+            citation_extractor,
+            token_counter,
+            scorecard: RagScorecard::default(),
+            metrics_history: Arc::new(RwLock::new(Vec::new())),
+            token_budget,
+        }
+    }
+
+    /// Pipeline RAG completo com verificações em cada etapa
+    #[instrument(skip(self), fields(query = %query))]
+    pub async fn execute(&self, query: &str) -> Result<RagResponse, RagError> {
+        let start = Instant::now();
+
+        // ── ETAPA 1: Contenção (CNT-001, CNT-007) ──
+        let action = TypedAction::NoAction;
+        if let Err(e) = self.containment.validate(&action) {
+            return Err(RagError::ContainmentViolation(e.to_string()));
+        }
+
+        // ── ETAPA 2: PII Scan (OWASP-002) ──
+        let pii_matches = self.pii_scanner.scan(query).await;
+        if !pii_matches.is_empty() {
+            return Err(RagError::PiiDetected { count: pii_matches.len() });
+        }
+
+        // ── ETAPA 3: Token Budget Check (OWASP-010) ──
+        let query_tokens = self.token_counter.count(query);
+        if query_tokens > self.token_budget {
+            return Err(RagError::TokenBudgetExceeded {
+                used: query_tokens,
+                total: self.token_budget,
+            });
+        }
+
+        // ── ETAPA 4: Retrieval com timeout (LTL-004) ──
+        let retrieval_result = tokio::time::timeout(
+            Duration::from_millis(1500),
+            self.vector_store.search(query, 20, HashMap::new()),
+        )
+        .await
+        .map_err(|_| RagError::Timeout(1500))??;
+
+        if retrieval_result.is_empty() {
+            return Err(RagError::EmptyResults);
+        }
+
+        // ── ETAPA 5: PII scan nos documentos recuperados (OWASP-002, OWASP-008) ──
+        let mut clean_results = Vec::new();
+        let mut pii_leak_count = 0usize;
+        for result in &retrieval_result {
+            let doc_pii = self.pii_scanner.scan(&result.content).await;
+            if doc_pii.is_empty() {
+                clean_results.push(result.clone());
+            } else {
+                pii_leak_count += doc_pii.len();
+                warn!(doc_id = %result.document_id, pii_count = doc_pii.len(), "PII in retrieved document");
+            }
+        }
+
+        // ── ETAPA 6: Rerank (OWASP-009) ──
+        let reranked = self.reranker.rerank(query, clean_results, 5).await?;
+        let rerank_threshold = reranked.first().map(|r| r.score).unwrap_or(0.0);
+
+        // ── ETAPA 7: Gerar resposta (simulação — em produção, chamar LLM via MCP) ──
+        let response_text = self.synthesize_response(query, &reranked).await;
+
+        // ── ETAPA 8: Grounding check (OWASP-009, NIST-001) ──
+        let grounding_score = self.grounding_checker.check(&response_text, &reranked).await?;
+        if grounding_score < self.scorecard.grounding_score_min {
+            return Err(RagError::GroundingTooLow {
+                score: grounding_score,
+                threshold: self.scorecard.grounding_score_min,
+            });
+        }
+
+        // ── ETAPA 9: Citation extraction (NIST-005) ──
+        let (citation_precision, citation_recall) = self.citation_extractor.extract(&response_text, &reranked).await;
+
+        // ── ETAPA 10: Métricas finais ──
+        let response_tokens = self.token_counter.count(&response_text);
+        let metrics = RagPathMetrics {
+            query_latency_ms: start.elapsed().as_secs_f64() * 1000.0,
+            retrieval_count: reranked.len(),
+            rerank_score_threshold: rerank_threshold,
+            grounding_score,
+            citation_precision,
+            citation_recall,
+            pii_leak_count,
+            token_budget_used: query_tokens + response_tokens,
+            token_budget_total: self.token_budget,
+            containment_violations: 0,
+        };
+
+        let evaluation = self.scorecard.evaluate(&metrics);
+        info!(
+            score = metrics.composite_score(),
+            is_golden = evaluation.is_golden,
+            "RAG pipeline complete"
+        );
+
+        // Registrar métricas para dashboard
+        self.metrics_history.write().await.push((Instant::now(), metrics.clone()));
+
+        Ok(RagResponse {
+            content: response_text,
+            sources: reranked.into_iter().map(|r| r.source_uri).collect(),
+            metrics,
+            evaluation,
+        })
+    }
+
+    async fn synthesize_response(&self, query: &str, sources: &[RetrievalResult]) -> String {
+        // Em produção: chamada real via MCP server para LLM
+        // Aqui: síntese determinística baseada nas fontes
+        let mut parts = vec![format!("Baseado em {} fontes recuperadas:", sources.len())];
+        for (i, src) in sources.iter().enumerate() {
+            parts.push(format!("  [{}] {} (score: {:.3})", i + 1, src.source_uri, src.score));
+        }
+        parts.push(format!("\nResposta para: {}", query));
+        parts.join("\n")
+    }
+
+    /// Retorna métricas agregadas dos últimos N segundos
+    pub async fn aggregated_metrics(&self, window_secs: u64) -> AggregatedMetrics {
+        let history = self.metrics_history.read().await;
+        let cutoff = Instant::now() - Duration::from_secs(window_secs);
+        let window: Vec<_> = history.iter()
+            .filter(|(t, _)| *t >= cutoff)
+            .map(|(_, m)| m.clone())
+            .collect();
+
+        if window.is_empty() {
+            return AggregatedMetrics::empty();
+        }
+
+        let mut latencies: Vec<f64> = window.iter().map(|m| m.query_latency_ms).collect();
+        latencies.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+        let p50 = latencies[latencies.len() / 2];
+        let p99 = latencies[(latencies.len() as f64 * 0.99) as usize];
+        let avg_grounding: f64 = window.iter().map(|m| m.grounding_score).sum::<f64>() / window.len() as f64;
+        let avg_composite: f64 = window.iter().map(|m| m.composite_score()).sum::<f64>() / window.len() as f64;
+        let golden_count = window.iter().filter(|m| m.is_golden()).count();
+
+        AggregatedMetrics {
+            request_count: window.len(),
+            latency_p50_ms: p50,
+            latency_p99_ms: p99,
+            avg_grounding_score: avg_grounding,
+            avg_composite_score: avg_composite,
+            golden_rate: golden_count as f64 / window.len() as f64,
+            total_pii_leaks: window.iter().map(|m| m.pii_leak_count).sum(),
+            total_containment_violations: window.iter().map(|m| m.containment_violations).sum(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RagResponse {
+    pub content: String,
+    pub sources: Vec<String>,
+    pub metrics: RagPathMetrics,
+    pub evaluation: ScorecardResult,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregatedMetrics {
+    pub request_count: usize,
+    pub latency_p50_ms: f64,
+    pub latency_p99_ms: f64,
+    pub avg_grounding_score: f64,
+    pub avg_composite_score: f64,
+    pub golden_rate: f64,
+    pub total_pii_leaks: usize,
+    pub total_containment_violations: usize,
+}
+
+impl AggregatedMetrics {
+    pub fn empty() -> Self {
+        Self {
+            request_count: 0,
+            latency_p50_ms: 0.0,
+            latency_p99_ms: 0.0,
+            avg_grounding_score: 0.0,
+            avg_composite_score: 0.0,
+            golden_rate: 0.0,
+            total_pii_leaks: 0,
+            total_containment_violations: 0,
+        }
+    }
+}

@@ -1,0 +1,10 @@
+--- crates/layer-0-invariants/arkhe-owasp-guardrails/Cargo.toml
++++ crates/layer-0-invariants/arkhe-owasp-guardrails/Cargo.toml
+@@ -7,4 +7,8 @@
+ async-trait = "0.1"
+ once_cell = "1.19"
+ regex = "1.10"
+ asi-golden-paths = { path = "../../layer-2-golden-paths/asi-golden-paths" }
++
++[dev-dependencies]
++tokio = { workspace = true }

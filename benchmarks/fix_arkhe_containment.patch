@@ -1,0 +1,12 @@
+--- crates/layer-0-invariants/arkhe-containment/src/lib.rs
++++ crates/layer-0-invariants/arkhe-containment/src/lib.rs
+@@ -1,4 +1,8 @@
+-pub struct TypedAction;
++pub enum TypedAction {
++    NoAction,
++    ReadPathAction { path: String },
++}
++
+ pub struct ContainmentLayer;
+ impl ContainmentLayer {
+     pub fn validate(&self, _action: &TypedAction) -> Result<(), &'static str> { Ok(()) }

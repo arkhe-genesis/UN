@@ -1,0 +1,6 @@
+[package]
+name = "arkhe-containment"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

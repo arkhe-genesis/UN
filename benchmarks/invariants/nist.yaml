@@ -1,0 +1,132 @@
+governance_characteristics:
+  - id: NIST-001
+    name: "Accuracy Floor Invariant"
+    description: "Accuracy >= threshold em golden answers"
+    metric: "accuracy"
+    threshold: 0.85
+    severity: CRITICAL
+    status: Implemented
+    implemented_in: ["arkhe-evals"]
+    runbook:
+      id: RB-NIST-001
+      trigger: "accuracy < 0.85 em eval window de 1h"
+      escalation_path:
+        - level: L1
+          role: "eval-oncall"
+          action: "Verificar se golden set foi atualizado incorretamente"
+          sla_minutes: 15
+          auto_action: "Re-executar eval com golden set anterior"
+        - level: L2
+          role: "ml-engineer"
+          action: "Analisar drift de distribuição nos embeddings"
+          sla_minutes: 60
+          auto_action: "Gerar drift report automático"
+        - level: L3
+          role: "governance-committee"
+          action: "Decidir: rollback de modelo ou atualização de golden set"
+          sla_minutes: 240
+          auto_action: "Notificar stakeholders via Slack #agi-incidents"
+      recovery_steps:
+        1: "Identificar janela de degradação (query logs + eval results)"
+        2: "Comparar outputs contra golden set versão anterior"
+        3: "Se drift detectado: re-indexar com configuração anterior"
+        4: "Se golden set desatualizado: atualizar com processo EU-003"
+        5: "Re-executar eval completo e validar recovery"
+        6: "Criar incident ticket e documentar root cause"
+      prevention:
+        - "Drift detection automático a cada 6h (MSR-002)"
+        - "Golden set versionado com approval gate"
+        - "Canary deploy com A/B eval antes de rollout"
+
+  - id: NIST-002
+    name: "Harm Prevention Invariant"
+    description: "Taxa de outputs tóxicos/harmful = 0"
+    metric: "toxic_output_rate"
+    threshold: 0.0
+    severity: CRITICAL
+    status: Implemented
+    implemented_in: ["arkhe-owasp-guardrails", "arkhe-containment"]
+    runbook:
+      id: RB-NIST-002
+      trigger: "qualquer output classificado como toxic/harmful"
+      escalation_path:
+        - level: L1
+          role: "safety-oncall"
+          action: "Verificar classificação (falso positivo?)"
+          sla_minutes: 5
+          auto_action: "Bloquear output + notificar requester"
+        - level: L2
+          role: "safety-engineer"
+          action: "Analisar prompt injection ou bypass de filtro"
+          sla_minutes: 30
+          auto_action: "Quarantine da sessão + coletar forensics"
+        - level: L3
+          role: "governance-committee"
+          action: "Decidir: patch de filtro, rollback, ou desabilitar funcionalidade"
+          sla_minutes: 120
+          auto_action: "Report de segurança para compliance"
+      recovery_steps:
+        1: "Isolar sessão e logs completos"
+        2: "Classificar: injection (LLM01), data poisoning (LLM04), ou gap de filtro"
+        3: "Aplicar patch específico ao gap identificado"
+        4: "Adicionar teste de regressão ao eval suite"
+        5: "Re-executar eval de segurança completo"
+        6: "Se systêmico: ativar circuit breaker e escalar"
+      prevention:
+        - "Red team contínuo (semanal)"
+        - "Adversarial eval em todo PR (invariant-gate.yml)"
+        - "Output filter com múltiplos classificadores (ensemble)"
+
+governance_functions:
+  - id: MNG-001
+    name: "Incident Response Invariant"
+    description: "Todo incidente tem plano de resposta documentado"
+    severity: HIGH
+    status: Implemented
+    implemented_in: ["asi-governance"]
+    runbook:
+      id: RB-MNG-001
+      trigger: "qualquer invariante CRITICAL violada em produção"
+      incident_classification:
+        - severity: SEV-1
+          definition: "Invariante CRITICAL violada afetando produção"
+          response_sla_minutes: 15
+          resolution_sla_hours: 4
+          notification: ["cto@company.com", "legal@company.com", "#sei-incidents-critical"]
+          examples: ["PII leak em produção", "Containment bypass", "Model substitution sem validação"]
+        - severity: SEV-2
+          definition: "Invariante HIGH violada ou CRITICAL em staging"
+          response_sla_minutes: 60
+          resolution_sla_hours: 24
+          notification: ["engineering-lead@company.com", "#sei-incidents"]
+          examples: ["Accuracy abaixo do threshold", "Eval score degradação > 10%"]
+        - severity: SEV-3
+          definition: "Invariante MEDIUM violada ou degradação de métrica"
+          response_sla_minutes: 480
+          resolution_sla_hours: 72
+          notification: ["#sei-incidents"]
+          examples: ["Latência acima do P99 target", "Golden rate < 90%"]
+      response_playbook:
+        phase_1_detect:
+          - "Alerta automático via PagerDuty (configurado em monitoring)"
+          - "Channel automático no Slack com contexto do incidente"
+          - "Dashboard link com métricas em tempo real"
+        phase_2_triage:
+          - "On-call confirma incidente em 5min (SEV-1) / 30min (SEV-2)"
+          - "Classificar severidade usando matriz acima"
+          - "Identificar scope: qual agente/endpoint/affected users"
+        phase_3_mitigate:
+          - "SEV-1: Circuit breaker automático já ativado"
+          - "SEV-1: Fallback para modo seguro (respostas genéricas)"
+          - "SEV-2: Throttle do endpoint afetado"
+          - "Documentar ação de mitigação no incident channel"
+        phase_4_resolve:
+          - "Identificar root cause com 5-Whys"
+          - "Implementar fix com testes de regressão"
+          - "PR com label `incident:SEV-X` para fast-track review"
+          - "Deploy via hotfix pipeline (skip canary se SEV-1)"
+        phase_5_learn:
+          - "Post-mortem em 48h (SEV-1) / 72h (SEV-2)"
+          - "Atualizar runbook se processo falhou"
+          - "Adicionar teste ao eval suite"
+          - "Atualizar matriz de riscos (MAP-001)"

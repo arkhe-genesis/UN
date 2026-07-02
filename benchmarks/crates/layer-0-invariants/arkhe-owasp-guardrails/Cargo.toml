@@ -1,0 +1,13 @@
+[package]
+name = "arkhe-owasp-guardrails"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+async-trait = "0.1"
+once_cell = "1.19"
+regex = "1.10"
+asi-golden-paths = { path = "../../layer-2-golden-paths/asi-golden-paths" }
+
+[dev-dependencies]
+tokio = { workspace = true }
