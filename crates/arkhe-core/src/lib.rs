@@ -1,3 +1,11 @@
+pub mod hash;
+pub mod types;
+pub mod delta;
+pub mod invariants;
+
+#[cfg(test)]
+pub mod tests;
+
 pub mod string_safe;
 pub mod hash;
 pub mod types;
@@ -15,3 +23,7 @@ impl std::fmt::Display for ArkheError {
     }
 }
 impl std::error::Error for ArkheError {}
+
+// Re-exports that might be useful
+pub use types::{State, Belief, Evidence, Artifact, Claim, Decision, Event, Hash};
+pub use hash::Hasher;

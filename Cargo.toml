@@ -47,15 +47,8 @@ members = [
     "crates/safe-core-model-runtime",
     "crates/safe-core-bridge",
     "crates/safe-core-types",
-    "crates/safe-core-lean4",
-    "crates/layer-0-invariants/arkhe-owasp-guardrails",
-    "crates/layer-1-governance/asi-governance",
-    "crates/layer-2-golden-paths/asi-golden-paths",
-    "crates/layer-3-agents/asi-evals",
-    "crates/layer-3-agents/asi-mcp-connectors",
-    "crates/layer-0-invariants/arkhe-containment",
-    "crates/layer-0-invariants/arkhe-txn"
-]
+    "crates/safe-core-lean4"
+, "crates/arkhe-hash-blake3", "crates/arkhe-oats", "crates/arkhe-merkle"]
 resolver = "2"
 
 [workspace.package]
