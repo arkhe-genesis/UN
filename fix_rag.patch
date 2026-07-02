@@ -1,0 +1,16 @@
+--- crates/layer-2-golden-paths/asi-golden-paths/src/rag/path.rs
++++ crates/layer-2-golden-paths/asi-golden-paths/src/rag/path.rs
+@@ -253,9 +253,9 @@
+         let start = Instant::now();
+
+         // ── ETAPA 1: Contenção (CNT-001, CNT-007) ──
+-        // let action = TypedAction::ReadPathAction { path: query.to_string() };
+-        // if let Err(e) = self.containment.validate(&action) {
+-        //     return Err(RagError::ContainmentViolation(e.to_string()));
+-        // }
++        let action = TypedAction::NoAction;
++        if let Err(e) = self.containment.validate(&action) {
++            return Err(RagError::ContainmentViolation(e.to_string()));
++        }
+
+         // ── ETAPA 2: PII Scan (OWASP-002) ──

@@ -1,0 +1,166 @@
+use async_trait::async_trait;
+use reqwest::Client;
+use std::collections::HashMap;
+use tracing::{info, error, instrument};
+
+use asi_golden_paths::rag::path::{VectorStoreConnector, RetrievalResult, HealthStatus, RagError};
+
+pub struct QdrantConnector {
+    client: Client,
+    base_url: String,
+    collection: String,
+    api_key: Option<String>,
+}
+
+impl QdrantConnector {
+    pub fn new(base_url: &str, collection: &str, api_key: Option<&str>) -> Self {
+        let mut builder = Client::builder()
+            .timeout(std::time::Duration::from_secs(10))
+            .connect_timeout(std::time::Duration::from_secs(5));
+
+        if let Some(key) = api_key {
+            builder = builder.default_headers({
+                let mut headers = reqwest::header::HeaderMap::new();
+                headers.insert("api-key", reqwest::header::HeaderValue::from_str(key).unwrap());
+                headers
+            });
+        }
+
+        Self {
+            client: builder.build().expect("Failed to create HTTP client"),
+            base_url: base_url.trim_end_matches('/').to_string(),
+            collection: collection.to_string(),
+            api_key: api_key.map(|s| s.to_string()),
+        }
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct QdrantSearchResponse {
+    result: Option<Vec<QdrantPoint>>,
+}
+
+#[derive(serde::Deserialize)]
+struct QdrantPoint {
+    id: String,
+    score: f64,
+    payload: Option<serde_json::Value>,
+}
+
+#[derive(serde::Deserialize)]
+struct QdrantCollectionInfo {
+    result: Option<QdrantCollectionResult>,
+}
+
+#[derive(serde::Deserialize)]
+struct QdrantCollectionResult {
+    points_count: Option<u64>,
+}
+
+#[async_trait]
+impl VectorStoreConnector for QdrantConnector {
+    #[instrument(skip(self), fields(collection = %self.collection))]
+    async fn search(
+        &self,
+        query: &str,
+        top_k: usize,
+        _filters: HashMap<String, String>,
+    ) -> Result<Vec<RetrievalResult>, RagError> {
+        let url = format!(
+            "{}/collections/{}/points/search",
+            self.base_url, self.collection
+        );
+
+        let body = serde_json::json!({
+            "vector": query,  // Em produção: usar embedding model via MCP
+            "limit": top_k,
+            "with_payload": true
+        });
+
+        let response = self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| RagError::ConnectionFailed(e.to_string()))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let text = response.text().await.unwrap_or_default();
+            error!(status = %status, body = %text, "Qdrant search failed");
+            return Err(RagError::ConnectionFailed(
+                format!("Qdrant returned {}: {}", status, text)
+            ));
+        }
+
+        let search_response: QdrantSearchResponse = response
+            .json()
+            .await
+            .map_err(|e| RagError::ConnectionFailed(e.to_string()))?;
+
+        let results: Vec<_> = search_response
+            .result
+            .unwrap_or_default()
+            .into_iter()
+            .map(|point| {
+                let payload = point.payload.unwrap_or(serde_json::Value::Null);
+                RetrievalResult {
+                    document_id: point.id,
+                    content: payload.get("content")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    score: point.score,
+                    metadata: serde_json::from_value(payload.clone()).unwrap_or_default(),
+                    source_uri: payload.get("source_uri")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("unknown")
+                        .to_string(),
+                }
+            })
+            .collect();
+
+        info!(result_count = results.len(), "Qdrant search complete");
+        Ok(results)
+    }
+
+    async fn health_check(&self) -> Result<HealthStatus, RagError> {
+        let url = format!(
+            "{}/collections/{}",
+            self.base_url, self.collection
+        );
+
+        let start = std::time::Instant::now();
+        let response = self.client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| RagError::ConnectionFailed(e.to_string()))?;
+
+        let latency_ms = start.elapsed().as_secs_f64() * 1000.0;
+
+        if !response.status().is_success() {
+            return Ok(HealthStatus {
+                healthy: false,
+                latency_ms,
+                index_count: 0,
+            });
+        }
+
+        let info: QdrantCollectionInfo = response
+            .json()
+            .await
+            .unwrap_or(QdrantCollectionInfo { result: None });
+
+        let points_count = info
+            .result
+            .and_then(|r| r.points_count)
+            .unwrap_or(0) as usize;
+
+        Ok(HealthStatus {
+            healthy: true,
+            latency_ms,
+            index_count: points_count,
+        })
+    }
+}

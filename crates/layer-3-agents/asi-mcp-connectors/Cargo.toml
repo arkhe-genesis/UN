@@ -1,0 +1,16 @@
+[package]
+name = "asi-mcp-connectors"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+async-trait = "0.1"
+reqwest = { version = "0.12", features = ["json"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+base64 = "0.22"
+tokio = { workspace = true }
+asi-golden-paths = { path = "../../layer-2-golden-paths/asi-golden-paths" }
+asi-governance = { path = "../../layer-1-governance/asi-governance" }
